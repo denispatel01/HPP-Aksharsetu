@@ -1127,11 +1127,11 @@ function _parseDobCell(v) {
 
 function _mergeSkillsEducation(data) {
   var base = _dStr(data, ['Skills', 'skills']);
-  var edu = _dStr(data, ['Education', 'education']);
+  var edu = _dStr(data, ['Qualification', 'qualification', 'Education', 'education']);
   var occ = _dStr(data, ['Occupation', 'occupation']);
   var parts = [];
   if (base) parts.push(base);
-  if (edu) parts.push('Education: ' + edu);
+  if (edu) parts.push('Qualification: ' + edu);
   if (occ) parts.push('Occupation: ' + occ);
   return parts.join(' | ');
 }
@@ -1227,7 +1227,7 @@ function _applyDevoteeDataToRow(row, data) {
   }
 
   var mergedSkills = _mergeSkillsEducation(data);
-  if (mergedSkills || data.Education || data.education || data.Occupation || data.occupation || data.Skills || data.skills) {
+  if (mergedSkills || data.Qualification || data.qualification || data.Education || data.education || data.Occupation || data.occupation || data.Skills || data.skills) {
     row[DEVOTEES_COL.Skills] = _truncateForSheet_(mergedSkills);
   }
 }

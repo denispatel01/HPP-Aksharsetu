@@ -707,10 +707,10 @@
       background: #15161a;
     }
     .bottom-sheet .photo-preview {
-      width: 5rem;
-      height: 5rem;
+      width: min(12rem, 48vw);
+      height: min(12rem, 48vw);
       margin: 0 auto 0.5rem;
-      border-radius: 50%;
+      border-radius: 1rem;
       border: 2px solid rgba(232, 162, 60, 0.4);
       background: rgba(255, 255, 255, 0.06);
       display: grid;
@@ -938,9 +938,9 @@
       align-items: flex-start;
     }
     #dev-view-modal .dv-profile-photo {
-      width: 4.5rem;
-      height: 4.5rem;
-      border-radius: 50%;
+      width: 7.25rem;
+      height: 7.25rem;
+      border-radius: 1rem;
       flex-shrink: 0;
       background: linear-gradient(145deg, rgba(232, 162, 60, 0.25), rgba(10, 10, 11, 0.9));
       border: 2px solid rgba(232, 162, 60, 0.45);
@@ -1326,7 +1326,6 @@
             <option value="all">All Gender</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
-            <option value="other">Other</option>
           </select>
           <select id="dev-filter-blood" class="dv-select" onchange="applyFilters()">
             <option value="all">All Blood</option>
@@ -1415,8 +1414,17 @@
           <div class="gender-row" id="dev-gender-row">
             <button type="button" data-g="male" onclick="selectDevGender('male')">Male</button>
             <button type="button" data-g="female" onclick="selectDevGender('female')">Female</button>
-            <button type="button" data-g="other" onclick="selectDevGender('other')">Other</button>
           </div>
+        </div>
+        <div>
+          <label for="dev-relation">Relation with head</label>
+          <select id="dev-relation" class="form-select" onchange="toggleDevRefBlock()">
+            <option value="Self">Self (new family head)</option>
+            <option value="Spouse">Spouse</option>
+            <option value="Child">Child</option>
+            <option value="Parent">Parent</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
       </div>
       <div>
@@ -1426,26 +1434,18 @@
   
       <details class="dev-sec" open>
         <summary>Spiritual</summary>
-        <p class="muted" style="font-size:0.78rem;margin:0.35rem 0;">Devotee type (multi)</p>
         <div class="type-chips" id="dev-type-chips">
-          <button type="button" data-type="haribhakt">Haribhakt</button>
-          <button type="button" data-type="kishore">Kishore</button>
-          <button type="button" data-type="kishori">Kishori</button>
-          <button type="button" data-type="yuvak">Yuvak</button>
-          <button type="button" data-type="yuvti">Yuvti</button>
-        </div>
-        <label style="display:flex;align-items:center;gap:0.35rem;margin-top:0.45rem;font-size:0.85rem;">
-          <input type="checkbox" id="dev-ambrish"> Ambrish
-        </label>
-        <div class="form-grid cols-2" style="margin-top:0.45rem;">
-          <div>
-            <label for="dev-diksha">Diksha level</label>
-            <input id="dev-diksha" class="form-input" placeholder="e.g. naam">
-          </div>
-          <div>
-            <label for="dev-panchamrut">Panchamrut</label>
-            <input id="dev-panchamrut" class="form-input">
-          </div>
+          <button type="button" data-type="ambrish">Ambrish</button>
+          <button type="button" data-type="mandal head">Mandal Head</button>
+          <button type="button" data-type="leader karyakarta">Leader Karyakarta</button>
+          <button type="button" data-type="karyakarta">Karyakarta</button>
+          <button type="button" data-type="regular sabha">Regular Sabha</button>
+          <button type="button" data-type="irregular sabha">Irregular Sabha</button>
+          <button type="button" data-type="occasional sabha">Occasional Sabha</button>
+          <button type="button" data-type="special sabha">Special Sabha</button>
+          <button type="button" data-type="zoli/prasad">Zoli/Prasad</button>
+          <button type="button" data-type="shibir/samaiya">Shibir/Samaiya</button>
+          <button type="button" data-type="dashansh seva">Dashansh Seva</button>
         </div>
       </details>
   
@@ -1465,21 +1465,11 @@
             <input id="dev-karyakarta" class="form-input" placeholder="Karyakarta full name">
           </div>
         </div>
-        <div style="margin-top:0.45rem;">
+        <div id="dev-ref-block" style="margin-top:0.45rem;">
           <label for="dev-ref-search">Reference (name)</label>
           <input id="dev-ref-search" class="form-input" type="search" placeholder="Type 2+ letters" autocomplete="off">
           <div id="dev-ref-results" class="ref-results"></div>
           <input type="hidden" id="dev-ref-id" value="">
-        </div>
-        <div style="margin-top:0.45rem;">
-          <label for="dev-relation">Relation with head</label>
-          <select id="dev-relation" class="form-select" onchange="toggleDevRefBlock()">
-            <option value="Self">Self (new family head)</option>
-            <option value="Spouse">Spouse</option>
-            <option value="Child">Child</option>
-            <option value="Parent">Parent</option>
-            <option value="Other">Other</option>
-          </select>
         </div>
       </details>
   
@@ -1495,21 +1485,74 @@
             </select>
           </div>
           <div>
-            <label for="dev-education">Education</label>
-            <input id="dev-education" class="form-input">
+            <label for="dev-email">Email ID</label>
+            <input id="dev-email" class="form-input" type="email" placeholder="name@example.com">
           </div>
           <div>
-            <label for="dev-occupation">Occupation</label>
-            <input id="dev-occupation" class="form-input">
+            <label for="dev-qualification-select">Qualification (Dropdown)</label>
+            <select id="dev-qualification-select" class="form-select">
+              <option value="">Select qualification</option>
+              <option value="Below 10">Below 10</option>
+              <option value="SSC">SSC</option>
+              <option value="HSC">HSC</option>
+              <option value="BBA">BBA</option>
+              <option value="BCA">BCA</option>
+              <option value="B.Com">B.Com</option>
+              <option value="B.E.">B.E.</option>
+              <option value="B.Tech">B.Tech</option>
+              <option value="M.E.">M.E.</option>
+              <option value="M.Tech">M.Tech</option>
+              <option value="M.Com">M.Com</option>
+              <option value="CA">CA</option>
+              <option value="CS">CS</option>
+              <option value="Doctor">Doctor</option>
+              <option value="Ph.D">Ph.D</option>
+              <option value="ITI">ITI</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
           <div>
-            <label for="dev-emergency">Emergency contact</label>
-            <input id="dev-emergency" class="form-input">
+            <label for="dev-qualification-text">Qualification (Type manually)</label>
+            <input id="dev-qualification-text" class="form-input" placeholder="Type if not in list">
+          </div>
+          <div>
+            <label for="dev-occupation-select">Occupation (Dropdown)</label>
+            <select id="dev-occupation-select" class="form-select">
+              <option value="">Select occupation</option>
+              <option value="Student">Student</option>
+              <option value="Service / Employee">Service / Employee</option>
+              <option value="Business">Business</option>
+              <option value="Self Employed">Self Employed</option>
+              <option value="Government Job">Government Job</option>
+              <option value="Private Job">Private Job</option>
+              <option value="Teacher">Teacher</option>
+              <option value="Professor">Professor</option>
+              <option value="Doctor">Doctor</option>
+              <option value="Nurse">Nurse</option>
+              <option value="Engineer">Engineer</option>
+              <option value="IT Professional">IT Professional</option>
+              <option value="Accountant">Accountant</option>
+              <option value="CA / CS">CA / CS</option>
+              <option value="Lawyer">Lawyer</option>
+              <option value="Farmer">Farmer</option>
+              <option value="Shopkeeper">Shopkeeper</option>
+              <option value="Driver">Driver</option>
+              <option value="Technician">Technician</option>
+              <option value="Homemaker">Homemaker</option>
+              <option value="Retired">Retired</option>
+              <option value="Unemployed">Unemployed</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="dev-occupation-text">Occupation (Type manually)</label>
+            <input id="dev-occupation-text" class="form-input" placeholder="Type if not in list">
+          </div>
+          <div style="grid-column: 1 / -1;">
+            <label for="dev-remark">Remark</label>
+            <textarea id="dev-remark" class="form-textarea" rows="2" placeholder="Any important note"></textarea>
           </div>
         </div>
-        <label style="display:flex;align-items:center;gap:0.35rem;margin-top:0.45rem;font-size:0.85rem;">
-          <input type="checkbox" id="dev-elderly"> Is elderly
-        </label>
       </details>
     </div>
     <div class="sheet-footer">
@@ -1552,7 +1595,8 @@
       autoRelaxedStatusOnce: false,
       tableSortKey: 'name',
       tableSortDir: 1,
-      cacheByKey: {}
+      cacheByKey: {},
+      formReturnScrollY: 0
     };
     var DEV_CACHE_TTL_MS = 30 * 60 * 1000;
     var DEV_CACHE_PREFIX = 'hpp_devotees_cache_v1|';
@@ -1867,18 +1911,20 @@
     }
 
     function parseDevSkills(d) {
-      var edu = '';
+      var qualification = '';
       var occ = '';
       String(d.Skills || '')
         .split('|')
         .forEach(function (part) {
           var p = part.trim();
-          if (/^education:/i.test(p)) edu = p.replace(/^education:\s*/i, '').trim();
+          if (/^qualification:/i.test(p)) qualification = p.replace(/^qualification:\s*/i, '').trim();
+          if (/^education:/i.test(p) && !qualification) qualification = p.replace(/^education:\s*/i, '').trim();
           if (/^occupation:/i.test(p)) occ = p.replace(/^occupation:\s*/i, '').trim();
         });
       if (!occ && d.Occupation) occ = String(d.Occupation).trim();
-      if (!edu && d.Education) edu = String(d.Education).trim();
-      return { education: edu, occupation: occ };
+      if (!qualification && d.Qualification) qualification = String(d.Qualification).trim();
+      if (!qualification && d.Education) qualification = String(d.Education).trim();
+      return { qualification: qualification, occupation: occ };
     }
 
     function digitsOnly(s) {
@@ -2210,7 +2256,7 @@
           '<td><div class="dv-cell-primary">' +
           esc(sk.occupation || '—') +
           '</div>' +
-          (sk.education ? '<div class="dv-cell-sub">' + esc(sk.education) + '</div>' : '') +
+          (sk.qualification ? '<div class="dv-cell-sub">' + esc(sk.qualification) + '</div>' : '') +
           '</td>' +
           '<td>' +
           esc(ageY != null ? String(ageY) : '—') +
@@ -2373,7 +2419,20 @@
       });
     };
   
-    window.toggleDevRefBlock = function () {};
+    window.toggleDevRefBlock = function () {
+      var relation = (document.getElementById('dev-relation') || {}).value || 'Self';
+      var refBlock = document.getElementById('dev-ref-block');
+      if (!refBlock) return;
+      if (String(relation).toLowerCase() === 'self') {
+        refBlock.style.display = 'none';
+        document.getElementById('dev-ref-search').value = '';
+        document.getElementById('dev-ref-id').value = '';
+        document.getElementById('dev-ref-results').style.display = 'none';
+        document.getElementById('dev-ref-results').innerHTML = '';
+      } else {
+        refBlock.style.display = '';
+      }
+    };
   
     function wireTypeChips() {
       document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
@@ -2477,8 +2536,42 @@
       document.querySelectorAll('#dev-type-chips button.on').forEach(function (b) {
         parts.push(b.getAttribute('data-type'));
       });
-      if (document.getElementById('dev-ambrish').checked) parts.push('ambrish');
       return parts.filter(Boolean).join(',');
+    }
+
+    function pickInputOrSelect(inputId, selectId) {
+      var typed = (document.getElementById(inputId).value || '').trim();
+      if (typed) return typed;
+      return (document.getElementById(selectId).value || '').trim();
+    }
+
+    function setInputAndSelect(inputId, selectId, value) {
+      var v = String(value || '').trim();
+      var inputEl = document.getElementById(inputId);
+      var selectEl = document.getElementById(selectId);
+      if (!inputEl || !selectEl) return;
+      inputEl.value = '';
+      selectEl.value = '';
+      if (!v) return;
+      var found = false;
+      for (var i = 0; i < selectEl.options.length; i++) {
+        if (String(selectEl.options[i].value || '').toLowerCase() === v.toLowerCase()) {
+          selectEl.value = selectEl.options[i].value;
+          found = true;
+          break;
+        }
+      }
+      if (!found) inputEl.value = v;
+    }
+
+    function getDefaultMandalForEntry() {
+      var u = window.HPP && window.HPP.user;
+      if (!u) return '';
+      var role = String(u.role || '').toLowerCase();
+      var mandal = String(u.mandalID || '').trim();
+      if (!mandal) return '';
+      if (role === 'karyakarta' && mandal.toLowerCase().indexOf('adajan') !== -1) return 'Adajan';
+      return '';
     }
   
     function dobToDdMmYyyy(isoDateStr) {
@@ -2497,6 +2590,7 @@
       S.formMode = mode || 'add';
       S.editingId = devoteeID || null;
       S.editingRow = null;
+      S.formReturnScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       document.getElementById('dev-form-title').textContent =
         S.formMode === 'edit' ? 'Edit Devotee' : 'Add Devotee';
       document.getElementById('dev-form-sheet').classList.add('open');
@@ -2508,14 +2602,14 @@
         [
           'dev-first','dev-middle','dev-last','dev-mobile','dev-dob','dev-address',
           'dev-photo-url','dev-mandal','dev-leader','dev-karyakarta','dev-ref-search','dev-ref-id',
-          'dev-diksha','dev-panchamrut','dev-education','dev-occupation','dev-emergency'
+          'dev-email','dev-qualification-text','dev-occupation-text','dev-remark'
         ].forEach(function (id) {
           var el = document.getElementById(id);
           if (el) el.value = '';
         });
+        document.getElementById('dev-qualification-select').value = '';
+        document.getElementById('dev-occupation-select').value = '';
         document.getElementById('dev-relation').value = 'Self';
-        document.getElementById('dev-ambrish').checked = false;
-        document.getElementById('dev-elderly').checked = false;
         document.getElementById('dev-blood').value = '';
         clearDevPhoto();
         document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
@@ -2523,8 +2617,8 @@
         });
         S.selectedGender = '';
         selectDevGender('');
-        var u = window.HPP && window.HPP.user;
-        if (u && u.mandalID) document.getElementById('dev-mandal').value = u.mandalID;
+        document.getElementById('dev-mandal').value = getDefaultMandalForEntry();
+        toggleDevRefBlock();
         paintDevListIcons();
       } else if (devoteeID) {
         if (window.setGlobalLoading) window.setGlobalLoading(true, 'Loading devotee...');
@@ -2552,13 +2646,13 @@
             document.getElementById('dev-karyakarta').value = d.KaryakartaName || d.KaryakartaID || '';
             document.getElementById('dev-ref-id').value = '';
             document.getElementById('dev-relation').value = d.RelationWithHead || 'Self';
-            document.getElementById('dev-diksha').value = d.DikashaLevel || '';
-            document.getElementById('dev-panchamrut').value = d.Panchamrut || '';
             document.getElementById('dev-blood').value = d.BloodGroup || '';
-            document.getElementById('dev-emergency').value = d.EmergencyContact || '';
-            document.getElementById('dev-elderly').checked = !!d.IsElderly;
+            document.getElementById('dev-email').value = d.Email || '';
+            document.getElementById('dev-remark').value = d.SpecialNeeds || '';
+            var sk = parseDevSkills(d);
+            setInputAndSelect('dev-qualification-text', 'dev-qualification-select', sk.qualification || '');
+            setInputAndSelect('dev-occupation-text', 'dev-occupation-select', sk.occupation || '');
             var dtype = String(d.DevoteeType || '').toLowerCase();
-            document.getElementById('dev-ambrish').checked = dtype.indexOf('ambrish') !== -1;
             document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
               var t = b.getAttribute('data-type');
               b.classList.toggle('on', dtype.indexOf(t) !== -1);
@@ -2566,8 +2660,8 @@
             var g = String(d.Gender || '').toLowerCase();
             if (g === 'm' || g === 'male') selectDevGender('male');
             else if (g === 'f' || g === 'female') selectDevGender('female');
-            else if (g) selectDevGender('other');
             else selectDevGender('');
+            toggleDevRefBlock();
             paintDevListIcons();
           })
           .withFailureHandler(function (e) {
@@ -2587,6 +2681,7 @@
       if (fi) fi.value = '';
       document.getElementById('dev-ref-results').style.display = 'none';
       document.getElementById('dev-ref-results').innerHTML = '';
+      window.scrollTo(0, S.formReturnScrollY || 0);
     };
   
     window.submitDevoteeForm = function () {
@@ -2611,13 +2706,12 @@
         Reference: document.getElementById('dev-ref-search').value.trim(),
         ReferenceLookupID: document.getElementById('dev-ref-id').value.trim(),
         DevoteeType: collectDevoteeTypes(),
-        DikashaLevel: document.getElementById('dev-diksha').value.trim(),
-        Panchamrut: document.getElementById('dev-panchamrut').value.trim(),
         BloodGroup: document.getElementById('dev-blood').value,
-        EmergencyContact: document.getElementById('dev-emergency').value.trim(),
-        Education: document.getElementById('dev-education').value.trim(),
-        Occupation: document.getElementById('dev-occupation').value.trim(),
-        IsElderly: document.getElementById('dev-elderly').checked,
+        Email: document.getElementById('dev-email').value.trim(),
+        Qualification: pickInputOrSelect('dev-qualification-text', 'dev-qualification-select'),
+        Education: pickInputOrSelect('dev-qualification-text', 'dev-qualification-select'),
+        Occupation: pickInputOrSelect('dev-occupation-text', 'dev-occupation-select'),
+        SpecialNeeds: document.getElementById('dev-remark').value.trim(),
         Gender: S.selectedGender
       };
   
@@ -2766,16 +2860,13 @@
             dvProfileRow('user', 'Gender', d.Gender) +
             dvProfileRow('droplet', 'Blood group', d.BloodGroup) +
             (sk.occupation ? dvProfileRow('briefcase', 'Occupation', sk.occupation) : '') +
-            (sk.education ? dvProfileRow('graduation-cap', 'Education', sk.education) : '');
+            (sk.qualification ? dvProfileRow('graduation-cap', 'Qualification', sk.qualification) : '');
 
-          var spiritualBlock =
-            dvProfileRow('sparkles', 'Devotee type', d.DevoteeType) +
-            dvProfileRow('flame', 'Diksha level', d.DikashaLevel) +
-            dvProfileRow('droplets', 'Panchamrut', d.Panchamrut);
+          var spiritualBlock = dvProfileRow('sparkles', 'Spiritual flags', d.DevoteeType);
 
           var addrSkills =
             dvProfileRow('home', 'Address', d.Address) +
-            dvProfileRow('book-open', 'Skills & education', d.Skills);
+            dvProfileRow('notebook-pen', 'Remark', d.SpecialNeeds);
 
           function profileCard(title, icon, inner) {
             if (!inner) return '';
