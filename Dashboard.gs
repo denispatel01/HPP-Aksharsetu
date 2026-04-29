@@ -5,6 +5,9 @@
 /**
  * @return {{ success: boolean, data?: Object, error?: string }}
  */
+ /**
+ * Denis
+ */
 function getBootstrapDashboardData() {
   try {
     var startedAt = Date.now();
