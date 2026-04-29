@@ -1,0 +1,3070 @@
+<style>
+    #devotees-content {
+      --dv-gap: 0.75rem;
+      --dv-bg: #0a0a0b;
+      --dv-surface: #121214;
+      --dv-border: rgba(255, 255, 255, 0.08);
+      --dv-muted: rgba(255, 255, 255, 0.72);
+      --dv-gold: #e8a23c;
+      --dv-gold-dim: rgba(232, 162, 60, 0.35);
+      --dv-accent-satsangi: #e8830a;
+      --dv-accent-haribhakt: #5b9bd5;
+      --dv-accent-karyakarta: #3cb878;
+      background: var(--dv-bg);
+      color: rgba(255, 255, 255, 0.92);
+      border-radius: 14px;
+      padding: 0.85rem 1rem 1.25rem;
+      margin: 0 -0.25rem;
+    }
+    #devotees-content .btn-primary {
+      background: linear-gradient(145deg, #e8a23c, #c77d1a);
+      color: #0a0a0b;
+      border: 0;
+      font-weight: 600;
+    }
+    #devotees-content .btn-primary:hover {
+      filter: brightness(1.06);
+      box-shadow: 0 0 16px rgba(232, 162, 60, 0.35);
+    }
+    #devotees-content .btn-secondary {
+      background: transparent;
+      color: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--dv-border);
+    }
+    #devotees-content .btn-secondary:hover {
+      border-color: var(--dv-gold-dim);
+      color: #fff;
+    }
+    #devotees-content .dv-stats-strip {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--dv-gap);
+      margin-bottom: 1.1rem;
+    }
+    @media (min-width: 40rem) {
+      #devotees-content .dv-stats-strip { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 56rem) {
+      #devotees-content .dv-stats-strip { grid-template-columns: repeat(6, 1fr); }
+    }
+    #devotees-content .dv-stat {
+      background: var(--dv-surface);
+      border: 1px solid var(--dv-border);
+      border-radius: 12px;
+      padding: 0.8rem 0.9rem;
+      text-align: left;
+      box-shadow: 0 0 0 1px rgba(232, 162, 60, 0.06);
+    }
+    #devotees-content .dv-stat-num {
+      font-family: var(--font-mono);
+      font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+      color: #faf8f4;
+      font-weight: 400;
+      line-height: 1.1;
+      margin-top: 0.3rem;
+    }
+    #devotees-content .dv-stat-lbl {
+      font-size: 0.74rem;
+      color: var(--dv-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 500;
+    }
+    #devotees-content .dv-stat-meta {
+      font-size: 0.72rem;
+      color: var(--dv-muted);
+      margin-top: 0.4rem;
+      opacity: 0.92;
+    }
+    #devotees-content .dv-page-head { margin-bottom: 0.85rem; }
+    #devotees-content .dv-title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    #devotees-content .dv-page-title {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 3vw, 1.75rem);
+      font-weight: 600;
+      color: #faf8f4;
+      letter-spacing: 0.02em;
+    }
+    #devotees-content .dv-count-pill {
+      font-size: 0.78rem;
+      color: var(--dv-muted);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999rem;
+      border: 1px solid var(--dv-border);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    #devotees-content .dv-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem 0.65rem;
+      align-items: center;
+    }
+    #devotees-content .dv-search-wrap {
+      flex: 1 1 16rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-width: 0;
+      border: 1px solid var(--dv-border);
+      border-radius: 999rem;
+      padding: 0.35rem 0.65rem 0.35rem 0.85rem;
+      background: var(--dv-surface);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    #devotees-content .dv-search-wrap:focus-within {
+      border-color: var(--dv-gold-dim);
+      box-shadow: 0 0 0 2px rgba(232, 162, 60, 0.12);
+    }
+    #devotees-content .dv-search-ico {
+      display: flex;
+      color: var(--dv-muted);
+      flex-shrink: 0;
+    }
+    #devotees-content .dv-search-ico svg { width: 1rem; height: 1rem; stroke-width: 2; }
+    #devotees-content .dv-search-input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: #f5f3ef;
+      font-size: 0.88rem;
+      outline: none;
+      font-family: inherit;
+    }
+    #devotees-content .dv-search-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+    #devotees-content .dv-search-clear {
+      flex-shrink: 0;
+      border: 0;
+      background: transparent;
+      color: var(--dv-gold);
+      font-size: 0.78rem;
+      cursor: pointer;
+      padding: 0.25rem 0.35rem;
+    }
+    #devotees-content .dv-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+    }
+    #devotees-content .dv-select {
+      appearance: none;
+      border: 1px solid var(--dv-border);
+      border-radius: 999rem;
+      padding: 0.42rem 1.65rem 0.42rem 0.75rem;
+      background: var(--dv-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a89a7a' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 0.55rem center;
+      color: rgba(255, 255, 255, 0.88);
+      font-size: 0.78rem;
+      cursor: pointer;
+      max-width: 11rem;
+    }
+    #devotees-content .dv-toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+      margin-left: auto;
+    }
+    #devotees-content .dv-view-switch {
+      display: inline-flex;
+      border: 1px solid var(--dv-border);
+      border-radius: 10px;
+      padding: 3px;
+      background: rgba(0, 0, 0, 0.35);
+    }
+    #devotees-content .dv-view-btn {
+      border: 0;
+      background: transparent;
+      color: var(--dv-muted);
+      padding: 0.4rem 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    #devotees-content .dv-view-btn svg { width: 1.05rem; height: 1.05rem; stroke-width: 2; }
+    #devotees-content .dv-view-btn:hover { color: #fff; }
+    #devotees-content .dv-view-btn.active {
+      background: linear-gradient(145deg, rgba(232, 162, 60, 0.35), rgba(232, 131, 10, 0.2));
+      color: #fff;
+      box-shadow: 0 0 12px rgba(232, 162, 60, 0.25);
+    }
+    #devotees-content .dv-family-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    #devotees-content .dv-list-meta {
+      font-size: 0.9rem;
+      color: var(--dv-muted);
+      margin: 0.5rem 0 0.75rem;
+    }
+    #devotees-content #devotees-list.dv-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--dv-gap);
+    }
+    @media (min-width: 34rem) {
+      #devotees-content #devotees-list.dv-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 56rem) {
+      #devotees-content #devotees-list.dv-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    #devotees-content #devotees-list.dv-table-host,
+    #devotees-content #devotees-list.dv-family-host { display: block; }
+    #devotees-content .dv-card {
+      position: relative;
+      border: 1px solid var(--dv-border);
+      border-radius: 14px;
+      padding: 0;
+      background: var(--dv-surface);
+      overflow: hidden;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    #devotees-content .dv-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      border-radius: 14px 14px 0 0;
+      background: var(--dv-accent-satsangi);
+      box-shadow: 0 0 14px rgba(232, 131, 10, 0.45);
+    }
+    #devotees-content .dv-card.dv-type-haribhakt::before {
+      background: var(--dv-accent-haribhakt);
+      box-shadow: 0 0 14px rgba(91, 155, 213, 0.4);
+    }
+    #devotees-content .dv-card.dv-type-karyakarta::before {
+      background: var(--dv-accent-karyakarta);
+      box-shadow: 0 0 14px rgba(60, 184, 120, 0.4);
+    }
+    #devotees-content .dv-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    }
+    #devotees-content .dv-card-inner { padding: 0.85rem 0.95rem 0.75rem; }
+    #devotees-content .dv-card-head {
+      display: flex;
+      gap: 0.65rem;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+    }
+    #devotees-content .dv-avatar {
+      width: 2.65rem;
+      height: 2.65rem;
+      border-radius: 50%;
+      background: rgba(232, 162, 60, 0.15);
+      color: var(--dv-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      border: 1px solid var(--dv-gold-dim);
+    }
+    #devotees-content .dv-card-names { flex: 1; min-width: 0; }
+    #devotees-content .dv-card-name {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 100;
+      color: #faf8f4;
+      line-height: 1.25;
+      font-family: var(--font-display);
+    }
+    #devotees-content .dv-card-relation {
+      font-size: 0.82rem;
+      color: var(--dv-muted);
+      margin-top: 0.15rem;
+      text-transform: capitalize;
+    }
+    #devotees-content .dv-type-badge {
+      display: inline-block;
+      margin-top: 0.35rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      font-weight: 600;
+      padding: 0.2rem 0.45rem;
+      border-radius: 999rem;
+      border: 1px solid var(--dv-gold-dim);
+      color: var(--dv-accent-satsangi);
+    }
+    #devotees-content .dv-type-badge.haribhakt {
+      border-color: rgba(91, 155, 213, 0.45);
+      color: var(--dv-accent-haribhakt);
+    }
+    #devotees-content .dv-type-badge.karyakarta {
+      border-color: rgba(60, 184, 120, 0.45);
+      color: var(--dv-accent-karyakarta);
+    }
+    #devotees-content .dv-card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    #devotees-content .dv-kv label {
+      display: block;
+      font-size: 0.66rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dv-muted);
+      margin-bottom: 0.12rem;
+    }
+    #devotees-content .dv-kv span {
+      font-size: 0.95rem;
+      color: #f0ebe4;
+      font-weight: 500;
+    }
+    #devotees-content .dv-card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid var(--dv-border);
+    }
+    #devotees-content .dv-fam-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.8rem;
+      color: var(--dv-gold);
+      padding: 0.28rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--dv-gold-dim);
+      background: rgba(232, 162, 60, 0.08);
+    }
+    #devotees-content .dv-fam-chip svg { width: 0.85rem; height: 0.85rem; stroke-width: 2; }
+    #devotees-content .dv-actions {
+      display: flex;
+      gap: 0.35rem;
+    }
+    #devotees-content .dv-icon-btn {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 8px;
+      border: 1px solid var(--dv-border);
+      background: transparent;
+      color: var(--dv-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    #devotees-content .dv-icon-btn:hover {
+      color: var(--dv-gold);
+      border-color: var(--dv-gold-dim);
+      background: rgba(232, 162, 60, 0.08);
+    }
+    #devotees-content .dv-icon-btn svg { width: 0.95rem; height: 0.95rem; stroke-width: 2; }
+    #devotees-content .dv-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--dv-border);
+      border-radius: 14px;
+      background: var(--dv-surface);
+    }
+    #devotees-content table.dv-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      min-width: 720px;
+    }
+    #devotees-content .dv-table th,
+    #devotees-content .dv-table td {
+      padding: 0.75rem 0.85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      vertical-align: middle;
+    }
+    #devotees-content .dv-table th {
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dv-gold);
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    #devotees-content .dv-table tbody tr { transition: background 0.15s; }
+    #devotees-content .dv-table tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
+    #devotees-content .dv-table .dv-td-name { white-space: nowrap; }
+    #devotees-content .dv-table .dv-row-name {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    #devotees-content .dv-table .dv-avatar-sm {
+      width: 2.1rem;
+      height: 2.1rem;
+      border-radius: 50%;
+      background: rgba(232, 162, 60, 0.12);
+      color: var(--dv-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    #devotees-content .dv-table .dv-cell-primary { color: #faf8f4; font-weight: 500; }
+    #devotees-content .dv-table .dv-cell-sub { font-size: 0.78rem; color: var(--dv-muted); margin-top: 0.1rem; }
+    #devotees-content .dv-table .dv-fam-id { color: var(--dv-gold); font-weight: 500; }
+    #devotees-content .dv-table .dv-type-pill {
+      display: inline-block;
+      font-size: 0.64rem;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+      padding: 0.2rem 0.45rem;
+      border-radius: 999rem;
+      border: 1px solid var(--dv-gold-dim);
+      color: var(--dv-accent-satsangi);
+    }
+    #devotees-content .dv-table .dv-type-pill.haribhakt {
+      border-color: rgba(91, 155, 213, 0.45);
+      color: var(--dv-accent-haribhakt);
+    }
+    #devotees-content .dv-table .dv-type-pill.karyakarta {
+      border-color: rgba(60, 184, 120, 0.45);
+      color: var(--dv-accent-karyakarta);
+    }
+    #devotees-content .dv-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 1rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid var(--dv-border);
+    }
+    #devotees-content .dv-pagination .dv-pg-btns { display: flex; gap: 0.35rem; align-items: center; }
+    #devotees-content .dv-pagination .dv-pg-tools { display: inline-flex; gap: 0.45rem; align-items: center; }
+    #devotees-content .dv-pagination .dv-pg-tools select,
+    #devotees-content .dv-pagination .dv-pg-tools input {
+      height: 2.1rem;
+      border-radius: 8px;
+      border: 1px solid var(--dv-border);
+      background: var(--dv-surface);
+      color: var(--dv-text);
+      padding: 0 0.5rem;
+      font-size: 0.82rem;
+    }
+    #devotees-content .dv-pagination .dv-pg-tools input { width: 4.5rem; }
+    #devotees-content .dv-pagination button {
+      min-width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--dv-border);
+      background: var(--dv-surface);
+      color: var(--dv-muted);
+      cursor: pointer;
+      font-size: 0.82rem;
+    }
+    #devotees-content .dv-pagination button.active {
+      background: linear-gradient(145deg, rgba(232, 162, 60, 0.4), rgba(232, 131, 10, 0.2));
+      border-color: var(--dv-gold-dim);
+      color: #fff;
+    }
+    #devotees-content .dv-pagination button:disabled { opacity: 0.35; cursor: default; }
+    #devotees-content details.dv-fam {
+      border: 1px solid var(--dv-border);
+      border-radius: 14px;
+      margin-bottom: 0.65rem;
+      background: var(--dv-surface);
+      overflow: hidden;
+    }
+    #devotees-content details.dv-fam > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.75rem;
+    }
+    #devotees-content details.dv-fam > summary::-webkit-details-marker { display: none; }
+    #devotees-content .dv-fam-ico { color: var(--dv-gold); display: flex; }
+    #devotees-content .dv-fam-ico svg { width: 1.1rem; height: 1.1rem; stroke-width: 2; }
+    #devotees-content .dv-fam-title { font-weight: 600; color: #faf8f4; font-family: var(--font-display); flex: 1 1 auto; min-width: 0; }
+    #devotees-content .dv-fam-head-badge {
+      font-size: 0.68rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 999rem;
+      border: 1px solid var(--dv-border);
+      color: var(--dv-muted);
+      text-transform: capitalize;
+    }
+    #devotees-content .dv-fam-count {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999rem;
+      background: rgba(232, 162, 60, 0.15);
+      color: var(--dv-gold);
+      border: 1px solid var(--dv-gold-dim);
+    }
+    #devotees-content .dv-fam-chev { margin-left: auto; color: var(--dv-muted); display: flex; transition: transform 0.2s; }
+    #devotees-content details.dv-fam[open] .dv-fam-chev { transform: rotate(180deg); }
+    #devotees-content .dv-fam-sub {
+      flex: 1 1 100%;
+      width: 100%;
+      font-size: 0.78rem;
+      color: var(--dv-muted);
+      padding: 0.15rem 0 0 1.85rem;
+      order: 8;
+    }
+    #devotees-content .dv-fam-body {
+      padding: 0 1rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+    }
+    #devotees-content .dv-member {
+      flex: 1 1 10rem;
+      max-width: 14rem;
+      border: 1px solid var(--dv-border);
+      border-radius: 12px;
+      padding: 0.65rem 0.75rem;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    #devotees-content .dv-member-top {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+      margin-bottom: 0.45rem;
+    }
+    #devotees-content .dv-member-name { font-size: 0.9rem; font-weight: 600; color: #f5f3ef; margin: 0; }
+    #devotees-content .dv-member-rel {
+      font-size: 0.68rem;
+      margin-top: 0.2rem;
+      display: inline-block;
+      padding: 0.12rem 0.35rem;
+      border-radius: 999rem;
+      border: 1px solid var(--dv-border);
+      color: var(--dv-muted);
+      text-transform: capitalize;
+    }
+    #devotees-content .dv-member-mobile { font-size: 0.82rem; color: var(--dv-muted); margin-top: 0.35rem; }
+    #devotees-content .dv-member-blood { font-size: 0.84rem; color: #e8dcc8; margin-top: 0.35rem; font-weight: 600; }
+    #devotees-content .dv-fam-footer {
+      padding: 0.5rem 1rem 0.85rem;
+      font-size: 0.74rem;
+      color: var(--dv-muted);
+      border-top: 1px solid var(--dv-border);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.35rem;
+    }
+    #devotees-content .dv-fam-footer svg { flex-shrink: 0; width: 0.9rem; height: 0.9rem; margin-top: 0.1rem; color: #c75c5c; stroke-width: 2; }
+    #devotees-content .dv-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--dv-muted);
+      font-size: 0.92rem;
+    }
+    #devotees-content .dv-empty p { margin: 0.5rem 0 0; }
+    #devotees-content .dv-empty-ico { width: 2.5rem; height: 2.5rem; opacity: 0.4; stroke-width: 1.5; }
+
+    .dv-form-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 88;
+      background: rgba(5, 5, 6, 0.72);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+    .dv-form-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .bottom-sheet {
+      position: fixed;
+      left: clamp(0.65rem, 2vw, 1.5rem);
+      right: clamp(0.65rem, 2vw, 1.5rem);
+      top: clamp(0.65rem, 2vh, 1.4rem);
+      bottom: clamp(0.65rem, 2vh, 1.4rem);
+      max-height: none;
+      background: #0f1012;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(232, 162, 60, 0.07);
+      z-index: 90;
+      transform: translateY(105%);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: transform 0.28s ease, opacity 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .bottom-sheet.open {
+      transform: translateY(0);
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .bottom-sheet .sheet-handle {
+      width: 3rem;
+      height: 0.28rem;
+      border-radius: 1rem;
+      background: rgba(232, 162, 60, 0.35);
+      margin: 0.55rem auto 0.2rem;
+    }
+    .bottom-sheet .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.95rem 0.65rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: #101113;
+    }
+    .bottom-sheet .sheet-header #dev-form-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      letter-spacing: 0.01em;
+      color: #faf8f4;
+    }
+    .bottom-sheet .sheet-header button {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999rem;
+      font-size: 1rem;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.78);
+    }
+    .bottom-sheet .sheet-header button:hover {
+      border-color: rgba(232, 162, 60, 0.5);
+      color: #fff;
+    }
+    .bottom-sheet .sheet-body {
+      overflow-y: auto;
+      padding: 0.8rem 1rem 1rem;
+      flex: 1;
+    }
+    .bottom-sheet .sheet-footer {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.72rem 1rem calc(0.72rem + env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      justify-content: flex-end;
+      background: #101113;
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+    }
+    .bottom-sheet .form-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+    }
+    @media (min-width: 40rem) {
+      .bottom-sheet .form-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+    }
+    .bottom-sheet .section-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      color: #faf8f4;
+      margin: 0.3rem 0 0.55rem;
+    }
+    .bottom-sheet details.dev-sec {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 0.48rem 0.62rem;
+      margin-top: 0.58rem;
+      background: #141518;
+    }
+    .bottom-sheet details.dev-sec > summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #f5f3ef;
+      list-style: none;
+    }
+    .bottom-sheet details.dev-sec > summary::-webkit-details-marker { display: none; }
+    .bottom-sheet .photo-box {
+      border: 1px dashed rgba(232, 162, 60, 0.35);
+      border-radius: 12px;
+      padding: 0.6rem;
+      text-align: center;
+      font-size: 0.78rem;
+      color: rgba(255, 255, 255, 0.55);
+      margin-bottom: 0.48rem;
+      background: #15161a;
+    }
+    .bottom-sheet .photo-preview {
+      width: 5rem;
+      height: 5rem;
+      margin: 0 auto 0.5rem;
+      border-radius: 50%;
+      border: 2px solid rgba(232, 162, 60, 0.4);
+      background: rgba(255, 255, 255, 0.06);
+      display: grid;
+      place-items: center;
+      color: rgba(255, 255, 255, 0.55);
+      overflow: hidden;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .bottom-sheet .photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .bottom-sheet .photo-actions {
+      display: flex;
+      gap: 0.4rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .bottom-sheet .gender-row { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .bottom-sheet .gender-row button {
+      flex: 1;
+      min-width: 4.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999rem;
+      padding: 0.45rem;
+      background: #181a1e;
+      cursor: pointer;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .bottom-sheet .gender-row button.selected {
+      border-color: rgba(232, 162, 60, 0.65);
+      background: rgba(232, 162, 60, 0.16);
+      font-weight: 600;
+      color: #fff;
+    }
+    .bottom-sheet .type-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .bottom-sheet .type-chips button {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999rem;
+      padding: 0.32rem 0.62rem;
+      font-size: 0.78rem;
+      background: #181a1e;
+      color: rgba(255, 255, 255, 0.82);
+      cursor: pointer;
+    }
+    .bottom-sheet .type-chips button.on {
+      border-color: rgba(232, 162, 60, 0.6);
+      background: rgba(232, 162, 60, 0.18);
+      color: #fff;
+    }
+    .bottom-sheet .ref-results {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      background: #16171a;
+      max-height: 8rem;
+      overflow-y: auto;
+      display: none;
+      margin-top: 0.25rem;
+    }
+    .bottom-sheet .ref-results button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.4rem 0.5rem;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.86);
+    }
+    .bottom-sheet label {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .bottom-sheet .form-input,
+    .bottom-sheet .form-select,
+    .bottom-sheet .form-textarea {
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #17191d;
+      color: rgba(255, 255, 255, 0.92);
+    }
+    .bottom-sheet .form-input:focus,
+    .bottom-sheet .form-select:focus,
+    .bottom-sheet .form-textarea:focus {
+      border-color: rgba(232, 162, 60, 0.55);
+      box-shadow: 0 0 0 2px rgba(232, 162, 60, 0.15);
+      outline: none;
+    }
+    .bottom-sheet .muted {
+      color: rgba(255, 255, 255, 0.48);
+    }
+    .bottom-sheet .form-select option {
+      color: #111;
+      background: #fff;
+    }
+  
+    #dev-view-modal.slide-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      background: #050506;
+      color: rgba(255, 255, 255, 0.92);
+      font-family: var(--font-ui);
+    }
+    #dev-view-modal.slide-modal.open { transform: translateX(0); }
+    #dev-view-modal .dv-profile-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+      padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-top));
+      padding-top: calc(0.65rem + env(safe-area-inset-top));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, rgba(232, 162, 60, 0.08) 0%, transparent 100%),
+        rgba(10, 10, 11, 0.92);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    #dev-view-modal .dv-profile-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(255, 255, 255, 0.88);
+      border-radius: 999rem;
+      padding: 0.45rem 0.85rem 0.45rem 0.55rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    #dev-view-modal .dv-profile-back:hover {
+      border-color: rgba(232, 162, 60, 0.45);
+      background: rgba(232, 162, 60, 0.1);
+      color: #fff;
+    }
+    #dev-view-modal .dv-profile-back svg {
+      width: 1.1rem;
+      height: 1.1rem;
+      stroke-width: 2;
+    }
+    #dev-view-modal .dv-profile-actions {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    #dev-view-modal .dv-profile-act {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border-radius: 999rem;
+      padding: 0.42rem 0.85rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    #dev-view-modal .dv-profile-act svg {
+      width: 0.95rem;
+      height: 0.95rem;
+      stroke-width: 2;
+    }
+    #dev-view-modal .dv-profile-act--gold {
+      background: linear-gradient(145deg, #e8a23c, #c77d1a);
+      color: #0a0a0b;
+      box-shadow: 0 0 20px rgba(232, 162, 60, 0.25);
+    }
+    #dev-view-modal .dv-profile-act--gold:hover {
+      filter: brightness(1.06);
+      transform: translateY(-1px);
+    }
+    #dev-view-modal .dv-profile-act--danger {
+      background: transparent;
+      border-color: rgba(239, 100, 100, 0.45);
+      color: #f09090;
+    }
+    #dev-view-modal .dv-profile-act--danger:hover {
+      background: rgba(239, 100, 100, 0.12);
+      border-color: rgba(239, 100, 100, 0.65);
+    }
+    #dev-view-modal .dv-profile-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1rem calc(1.5rem + env(safe-area-inset-bottom));
+      -webkit-overflow-scrolling: touch;
+    }
+    #dev-view-modal .dv-profile-hero {
+      position: relative;
+      border-radius: 18px;
+      padding: 1.35rem 1.25rem 1.15rem;
+      margin-bottom: 1.1rem;
+      background: linear-gradient(135deg, rgba(232, 162, 60, 0.12) 0%, rgba(18, 18, 20, 0.98) 45%, #121214 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 1px rgba(232, 162, 60, 0.06), 0 20px 50px rgba(0, 0, 0, 0.45);
+      overflow: hidden;
+    }
+    #dev-view-modal .dv-profile-hero::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #e8a23c, #e8830a, rgba(232, 162, 60, 0.3));
+      border-radius: 18px 18px 0 0;
+    }
+    #dev-view-modal .dv-profile-hero-inner {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+    #dev-view-modal .dv-profile-photo {
+      width: 4.5rem;
+      height: 4.5rem;
+      border-radius: 50%;
+      flex-shrink: 0;
+      background: linear-gradient(145deg, rgba(232, 162, 60, 0.25), rgba(10, 10, 11, 0.9));
+      border: 2px solid rgba(232, 162, 60, 0.45);
+      box-shadow: 0 0 24px rgba(232, 162, 60, 0.2);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #e8dcc8;
+      overflow: hidden;
+    }
+    #dev-view-modal .dv-profile-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #dev-view-modal .dv-profile-name {
+      margin: 0 0 0.4rem;
+      font-family: var(--font-display);
+      font-size: clamp(1.25rem, 4vw, 1.55rem);
+      font-weight: 600;
+      color: #faf8f4;
+      line-height: 1.25;
+      letter-spacing: 0.01em;
+    }
+    #dev-view-modal .dv-profile-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-bottom: 0.65rem;
+    }
+    #dev-view-modal .dv-profile-badge {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      padding: 0.28rem 0.55rem;
+      border-radius: 999rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.75);
+      text-transform: uppercase;
+    }
+    #dev-view-modal .dv-profile-badge--active {
+      border-color: rgba(60, 184, 120, 0.55);
+      color: #7ddeb0;
+      background: rgba(60, 184, 120, 0.1);
+    }
+    #dev-view-modal .dv-profile-badge--inactive {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.5);
+    }
+    #dev-view-modal .dv-profile-badge--type {
+      border-color: rgba(232, 162, 60, 0.5);
+      color: #e8a23c;
+      background: rgba(232, 162, 60, 0.08);
+    }
+    #dev-view-modal .dv-profile-badge--type.haribhakt {
+      border-color: rgba(91, 155, 213, 0.5);
+      color: #8ec5f0;
+      background: rgba(91, 155, 213, 0.1);
+    }
+    #dev-view-modal .dv-profile-badge--type.karyakarta {
+      border-color: rgba(60, 184, 120, 0.5);
+      color: #7ddeb0;
+      background: rgba(60, 184, 120, 0.1);
+    }
+    #dev-view-modal .dv-profile-quick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    #dev-view-modal .dv-profile-qbtn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.38rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.35);
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.75rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    #dev-view-modal .dv-profile-qbtn:hover {
+      border-color: rgba(232, 162, 60, 0.45);
+      color: #e8a23c;
+    }
+    #dev-view-modal .dv-profile-qbtn svg {
+      width: 0.9rem;
+      height: 0.9rem;
+      stroke-width: 2;
+    }
+    #dev-view-modal .dv-profile-card {
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #121214;
+      margin-bottom: 0.85rem;
+      overflow: hidden;
+    }
+    #dev-view-modal .dv-profile-card-h {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #e8a23c;
+    }
+    #dev-view-modal .dv-profile-card-h svg {
+      width: 1rem;
+      height: 1rem;
+      stroke-width: 2;
+      opacity: 0.9;
+    }
+    #dev-view-modal .dv-profile-card-b {
+      padding: 0.35rem 0.65rem 0.65rem;
+    }
+    #dev-view-modal .dv-profile-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 0.55rem 0.35rem;
+      border-radius: 10px;
+      transition: background 0.15s;
+    }
+    #dev-view-modal .dv-profile-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+    #dev-view-modal .dv-profile-row-ico {
+      flex-shrink: 0;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(232, 162, 60, 0.1);
+      color: #e8a23c;
+      border: 1px solid rgba(232, 162, 60, 0.2);
+    }
+    #dev-view-modal .dv-profile-row-ico svg {
+      width: 1rem;
+      height: 1rem;
+      stroke-width: 2;
+    }
+    #dev-view-modal .dv-profile-row-txt {
+      flex: 1;
+      min-width: 0;
+    }
+    #dev-view-modal .dv-profile-row-label {
+      display: block;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.72);
+      margin-bottom: 0.12rem;
+    }
+    #dev-view-modal .dv-profile-row-val {
+      font-size: 0.96rem;
+      color: #f5f3ef;
+      word-break: break-word;
+      line-height: 1.45;
+    }
+    #dev-view-modal .dv-profile-row-val a {
+      color: #e8a23c;
+      text-decoration: none;
+    }
+    #dev-view-modal .dv-profile-row-val a:hover {
+      text-decoration: underline;
+    }
+    #dev-view-modal .dv-profile-fam-head {
+      margin: 0.15rem 0 0.65rem;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      color: #faf8f4;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    #dev-view-modal .dv-profile-fam-head svg {
+      width: 1.1rem;
+      height: 1.1rem;
+      color: #e8a23c;
+      stroke-width: 2;
+    }
+    #dev-view-modal .dv-profile-fam-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+    }
+    @media (min-width: 30rem) {
+      #dev-view-modal .dv-profile-fam-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    #dev-view-modal .dv-profile-fam-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 0.75rem 0.85rem;
+      background: rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.18s, box-shadow 0.2s;
+      color: inherit;
+      font: inherit;
+    }
+    #dev-view-modal .dv-profile-fam-card:hover {
+      border-color: rgba(232, 162, 60, 0.45);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+    #dev-view-modal .dv-profile-fam-card--current {
+      border-color: rgba(232, 162, 60, 0.55);
+      box-shadow: inset 0 0 0 1px rgba(232, 162, 60, 0.2), 0 8px 24px rgba(232, 162, 60, 0.12);
+    }
+    #dev-view-modal .dv-profile-fam-av {
+      width: 2.35rem;
+      height: 2.35rem;
+      border-radius: 50%;
+      background: rgba(232, 162, 60, 0.15);
+      border: 1px solid rgba(232, 162, 60, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.78rem;
+      color: #e8dcc8;
+      margin-bottom: 0.45rem;
+    }
+    #dev-view-modal .dv-profile-fam-name {
+      font-size: 0.96rem;
+      font-weight: 600;
+      color: #faf8f4;
+      margin-bottom: 0.2rem;
+      line-height: 1.3;
+    }
+    #dev-view-modal .dv-profile-fam-meta {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.72);
+    }
+    #dev-view-modal .dv-profile-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1.5rem;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 0.85rem;
+    }
+    #dev-view-modal .dv-profile-loading svg {
+      width: 1.1rem;
+      height: 1.1rem;
+      stroke-width: 2;
+      animation: dvProfileSpin 0.9s linear infinite;
+    }
+    @keyframes dvProfileSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    #dev-view-modal .dv-profile-empty {
+      padding: 0.75rem;
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.4);
+      text-align: center;
+    }
+    [data-theme="light"] #devotees-content {
+      --dv-bg: var(--bg-primary);
+      --dv-surface: #ffffff;
+      --dv-border: var(--border-color);
+      --dv-muted: var(--text-secondary);
+      --dv-gold: var(--accent-primary);
+      --dv-gold-dim: var(--accent-primary-light);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-md);
+    }
+    [data-theme="light"] #devotees-content .dv-stat-num,
+    [data-theme="light"] #devotees-content .dv-page-title,
+    [data-theme="light"] #devotees-content .dv-card-name,
+    [data-theme="light"] #devotees-content .dv-kv span,
+    [data-theme="light"] #devotees-content .dv-table .dv-cell-primary,
+    [data-theme="light"] #devotees-content .dv-fam-title,
+    [data-theme="light"] #devotees-content .dv-member-name {
+      color: var(--text-primary);
+    }
+    [data-theme="light"] #devotees-content .dv-search-input { color: var(--text-primary); }
+    [data-theme="light"] #devotees-content .dv-search-input::placeholder { color: var(--text-muted); }
+    [data-theme="light"] #dev-view-modal.slide-modal {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+    [data-theme="light"] #dev-view-modal .dv-profile-head {
+      background: linear-gradient(180deg, var(--accent-primary-light) 0%, var(--bg-primary) 100%);
+      border-bottom-color: var(--border-color);
+    }
+    [data-theme="light"] #dev-view-modal .dv-profile-card,
+    [data-theme="light"] #dev-view-modal .dv-profile-fam-card {
+      background: #ffffff;
+      border-color: var(--border-color);
+    }
+    [data-theme="light"] #dev-view-modal .dv-profile-name,
+    [data-theme="light"] #dev-view-modal .dv-profile-row-val,
+    [data-theme="light"] #dev-view-modal .dv-profile-fam-name,
+    [data-theme="light"] #dev-view-modal .dv-profile-card-h {
+      color: var(--text-primary);
+    }
+    [data-theme="light"] #dev-view-modal .dv-profile-row-label,
+    [data-theme="light"] #dev-view-modal .dv-profile-fam-meta,
+    [data-theme="light"] #dev-view-modal .dv-profile-empty,
+    [data-theme="light"] #dev-view-modal .dv-profile-loading {
+      color: var(--text-secondary);
+    }
+    [data-theme="light"] #dev-view-modal .dv-profile-row-ico {
+      background: var(--accent-primary-light);
+      border-color: var(--border-color);
+      color: var(--accent-primary-hover);
+    }
+    [data-theme="light"] #dev-form-sheet.bottom-sheet {
+      background: #fffaf1;
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+    [data-theme="light"] #dev-form-sheet .form-input,
+    [data-theme="light"] #dev-form-sheet .form-select,
+    [data-theme="light"] #dev-form-sheet .form-textarea {
+      background: #ffffff;
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+    [data-theme="light"] #dev-form-sheet .sheet-header,
+    [data-theme="light"] #dev-form-sheet .sheet-footer {
+      background: #f5f0e8;
+      border-color: var(--border-color);
+    }
+    [data-theme="light"] #dev-form-sheet details.dev-sec {
+      background: #ffffff;
+      border-color: var(--border-color);
+    }
+    [data-theme="light"] #dev-form-sheet .photo-box {
+      background: #ffffff;
+      border-color: var(--border-color);
+    }
+    [data-theme="light"] #dev-form-sheet .gender-row button,
+    [data-theme="light"] #dev-form-sheet .type-chips button {
+      background: #ffffff;
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+  </style>
+  
+  <div id="devotees-content">
+    <div id="dev-stats-strip" class="dv-stats-strip">
+      <div class="dv-stat"><div class="dv-stat-lbl">Total Visible</div><div class="dv-stat-num" id="stat-total">0</div><div class="dv-stat-meta">In your access scope</div></div>
+      <div class="dv-stat"><div class="dv-stat-lbl">Active</div><div class="dv-stat-num" id="stat-active">0</div><div class="dv-stat-meta">Currently active</div></div>
+      <div class="dv-stat"><div class="dv-stat-lbl">Families</div><div class="dv-stat-num" id="stat-families">0</div><div class="dv-stat-meta">Unique families</div></div>
+      <div class="dv-stat"><div class="dv-stat-lbl">Ambrish Type</div><div class="dv-stat-num" id="stat-ambrish">0</div><div class="dv-stat-meta">Devotee type count</div></div>
+      <div class="dv-stat"><div class="dv-stat-lbl">Male</div><div class="dv-stat-num" id="stat-male">0</div><div class="dv-stat-meta">Gender count</div></div>
+      <div class="dv-stat"><div class="dv-stat-lbl">Female</div><div class="dv-stat-num" id="stat-female">0</div><div class="dv-stat-meta">Gender count</div></div>
+    </div>
+
+    <header class="dv-page-head">
+      <div class="dv-title-row">
+        <h1 class="dv-page-title">Devotees</h1>
+        <span class="dv-count-pill" id="dev-count-pill">0 devotees</span>
+      </div>
+      <div class="dv-toolbar">
+        <div class="dv-search-wrap">
+          <span class="dv-search-ico"><i data-lucide="search"></i></span>
+          <input id="dev-search" class="dv-search-input" type="search" placeholder="Search name, mobile, family, address…" autocomplete="off">
+          <button type="button" class="dv-search-clear" id="dev-search-clear" onclick="clearDevSearch()">Clear</button>
+        </div>
+        <div class="dv-filters">
+          <select id="dev-filter-mandal" class="dv-select" onchange="loadDevotees()"><option value="">All Mandals</option></select>
+          <select id="dev-filter-type" class="dv-select" onchange="loadDevotees()"><option value="all">All Types</option></select>
+          <select id="dev-filter-gender" class="dv-select" onchange="applyFilters()">
+            <option value="all">All Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+          <select id="dev-filter-blood" class="dv-select" onchange="applyFilters()">
+            <option value="all">All Blood</option>
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+          </select>
+          <select id="dev-filter-age" class="dv-select" onchange="applyFilters()">
+            <option value="all">All Ages</option>
+            <option value="kids">Kids (0–12)</option>
+            <option value="youth">Youth (13–35)</option>
+            <option value="adult">Adult (36–59)</option>
+            <option value="senior">Senior (60+)</option>
+          </select>
+          <select id="dev-filter-status" class="dv-select" onchange="loadDevotees()">
+            <option value="active">Active only</option>
+            <option value="all">All statuses</option>
+            <option value="inactive">Inactive</option>
+            <option value="relocated">Relocated</option>
+            <option value="deceased">Deceased</option>
+          </select>
+        </div>
+        <div class="dv-toolbar-right">
+          <div class="dv-view-switch" role="group" aria-label="View mode">
+            <button type="button" id="dev-view-cards" class="dv-view-btn active" onclick="setDevViewMode('cards')" title="Cards" aria-label="Card view"><i data-lucide="layout-grid"></i></button>
+            <button type="button" id="dev-view-table" class="dv-view-btn" onclick="setDevViewMode('table')" title="Table" aria-label="Table view"><i data-lucide="list"></i></button>
+            <button type="button" id="dev-view-family" class="dv-view-btn" onclick="setDevViewMode('family')" title="Family" aria-label="Family view"><i data-lucide="users-round"></i></button>
+          </div>
+          <div class="dv-family-actions" id="dv-family-actions" style="display:none">
+            <button type="button" class="btn-secondary" onclick="expandAllFamilies(true)">Expand all</button>
+            <button type="button" class="btn-secondary" onclick="expandAllFamilies(false)">Collapse all</button>
+          </div>
+          <button type="button" class="btn-primary" id="dev-btn-add" onclick="openDevForm('add')">Add Devotee</button>
+          <button type="button" class="btn-secondary" onclick="exportDevoteesExcel()">Export CSV</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="dv-list-meta" id="dev-count">Showing 0 devotees</div>
+    <div id="devotees-list" class="dv-grid"></div>
+    <div id="dev-pagination" class="dv-pagination" style="display:none"></div>
+    <div id="dev-empty" class="dv-empty" style="display:none"><i data-lucide="users" class="dv-empty-ico"></i><p>No devotees found</p></div>
+  </div>
+  
+  <div id="dev-form-backdrop" class="dv-form-backdrop" onclick="closeDevForm()"></div>
+  <div id="dev-form-sheet" class="bottom-sheet" aria-hidden="true">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span id="dev-form-title">Add Devotee</span>
+      <button type="button" onclick="closeDevForm()" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <p class="section-title">Quick entry</p>
+      <div class="photo-box">
+        <div class="photo-preview" id="dev-photo-preview">DP</div>
+        <div style="margin-bottom:0.45rem;">Photo upload</div>
+        <div class="photo-actions">
+          <button type="button" class="btn-secondary" onclick="triggerDevPhotoUpload()">Choose photo</button>
+          <button type="button" class="btn-secondary" onclick="clearDevPhoto()">Remove</button>
+        </div>
+        <input id="dev-photo-file" type="file" accept="image/*" style="display:none">
+        <input id="dev-photo-url" type="hidden" value="">
+      </div>
+      <div class="form-grid cols-2">
+        <div>
+          <label for="dev-first">First name *</label>
+          <input id="dev-first" class="form-input" required>
+        </div>
+        <div>
+          <label for="dev-middle">Middle name</label>
+          <input id="dev-middle" class="form-input">
+        </div>
+        <div>
+          <label for="dev-last">Last name *</label>
+          <input id="dev-last" class="form-input" required>
+        </div>
+        <div>
+          <label for="dev-mobile">Mobile</label>
+          <input id="dev-mobile" class="form-input" type="tel" inputmode="numeric">
+        </div>
+        <div>
+          <label for="dev-dob">DOB</label>
+          <input id="dev-dob" class="form-input" type="date">
+        </div>
+        <div>
+          <label>Gender</label>
+          <div class="gender-row" id="dev-gender-row">
+            <button type="button" data-g="male" onclick="selectDevGender('male')">Male</button>
+            <button type="button" data-g="female" onclick="selectDevGender('female')">Female</button>
+            <button type="button" data-g="other" onclick="selectDevGender('other')">Other</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label for="dev-address">Address</label>
+        <textarea id="dev-address" class="form-textarea" rows="2"></textarea>
+      </div>
+  
+      <details class="dev-sec" open>
+        <summary>Spiritual</summary>
+        <p class="muted" style="font-size:0.78rem;margin:0.35rem 0;">Devotee type (multi)</p>
+        <div class="type-chips" id="dev-type-chips">
+          <button type="button" data-type="haribhakt">Haribhakt</button>
+          <button type="button" data-type="kishore">Kishore</button>
+          <button type="button" data-type="kishori">Kishori</button>
+          <button type="button" data-type="yuvak">Yuvak</button>
+          <button type="button" data-type="yuvti">Yuvti</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:0.35rem;margin-top:0.45rem;font-size:0.85rem;">
+          <input type="checkbox" id="dev-ambrish"> Ambrish
+        </label>
+        <div class="form-grid cols-2" style="margin-top:0.45rem;">
+          <div>
+            <label for="dev-diksha">Diksha level</label>
+            <input id="dev-diksha" class="form-input" placeholder="e.g. naam">
+          </div>
+          <div>
+            <label for="dev-panchamrut">Panchamrut</label>
+            <input id="dev-panchamrut" class="form-input">
+          </div>
+        </div>
+      </details>
+  
+      <details class="dev-sec">
+        <summary>Organization</summary>
+        <div class="form-grid cols-2">
+          <div>
+            <label for="dev-mandal">Mandal</label>
+            <input id="dev-mandal" class="form-input" placeholder="e.g. Adajan, Atmiya">
+          </div>
+          <div>
+            <label for="dev-leader">Karyakarta Leader Name</label>
+            <input id="dev-leader" class="form-input" placeholder="Leader name">
+          </div>
+          <div>
+            <label for="dev-karyakarta">Karyakarta Name</label>
+            <input id="dev-karyakarta" class="form-input" placeholder="Karyakarta full name">
+          </div>
+        </div>
+        <div style="margin-top:0.45rem;">
+          <label for="dev-ref-search">Reference (name)</label>
+          <input id="dev-ref-search" class="form-input" type="search" placeholder="Type 2+ letters" autocomplete="off">
+          <div id="dev-ref-results" class="ref-results"></div>
+          <input type="hidden" id="dev-ref-id" value="">
+        </div>
+        <div style="margin-top:0.45rem;">
+          <label for="dev-relation">Relation with head</label>
+          <select id="dev-relation" class="form-select" onchange="toggleDevRefBlock()">
+            <option value="Self">Self (new family head)</option>
+            <option value="Spouse">Spouse</option>
+            <option value="Child">Child</option>
+            <option value="Parent">Parent</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </details>
+  
+      <details class="dev-sec">
+        <summary>More details</summary>
+        <div class="form-grid cols-2">
+          <div>
+            <label for="dev-blood">Blood group</label>
+            <select id="dev-blood" class="form-select">
+              <option value="">—</option>
+              <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+              <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+            </select>
+          </div>
+          <div>
+            <label for="dev-education">Education</label>
+            <input id="dev-education" class="form-input">
+          </div>
+          <div>
+            <label for="dev-occupation">Occupation</label>
+            <input id="dev-occupation" class="form-input">
+          </div>
+          <div>
+            <label for="dev-emergency">Emergency contact</label>
+            <input id="dev-emergency" class="form-input">
+          </div>
+        </div>
+        <label style="display:flex;align-items:center;gap:0.35rem;margin-top:0.45rem;font-size:0.85rem;">
+          <input type="checkbox" id="dev-elderly"> Is elderly
+        </label>
+      </details>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn-secondary" onclick="closeDevForm()">Cancel</button>
+      <button type="button" class="btn-primary" onclick="submitDevoteeForm()">💾 Save</button>
+    </div>
+  </div>
+  
+  <div id="dev-view-modal" class="slide-modal" aria-hidden="true">
+    <div class="dv-profile-head">
+      <button type="button" class="dv-profile-back" onclick="closeDevView()" aria-label="Back">
+        <i data-lucide="chevron-left"></i> Back
+      </button>
+      <div class="dv-profile-actions">
+        <button type="button" id="dev-view-edit" class="dv-profile-act dv-profile-act--gold" onclick="editFromDevView()">
+          <i data-lucide="pencil"></i> Edit
+        </button>
+        <button type="button" id="dev-view-delete" class="dv-profile-act dv-profile-act--danger" onclick="deleteFromDevView()">
+          <i data-lucide="trash-2"></i> Delete
+        </button>
+      </div>
+    </div>
+    <div class="sm-body dv-profile-body" id="dev-view-body"></div>
+  </div>
+  
+  <script>
+    var S = {
+      devotees: [],
+      filtered: [],
+      viewMode: 'cards',
+      formMode: 'add',
+      editingRow: null,
+      editingId: null,
+      selectedGender: '',
+      refTimer: null,
+      currentViewDevotee: null,
+      serverPage: 0,
+      pageSize: 50,
+      paging: { page: 0, pageSize: 50, total: 0, totalPages: 1, hasPrev: false, hasNext: false },
+      autoRelaxedStatusOnce: false,
+      tableSortKey: 'name',
+      tableSortDir: 1,
+      cacheByKey: {}
+    };
+    var DEV_CACHE_TTL_MS = 30 * 60 * 1000;
+    var DEV_CACHE_PREFIX = 'hpp_devotees_cache_v1|';
+  
+    function devToast(msg, type) {
+      if (window.showToast) window.showToast(msg, type || '');
+      else if (window.console) console.log(msg);
+    }
+    function devReport(functionName, message, err, context) {
+      if (typeof window.reportClientError === 'function') {
+        window.reportClientError(functionName, message, err, context || {});
+      }
+    }
+  
+    function animateNumber(el, target) {
+      var start = 0;
+      var dur = 500;
+      var t0 = performance.now();
+      function step(now) {
+        var p = Math.min(1, (now - t0) / dur);
+        var val = Math.round(start + (target - start) * p);
+        el.textContent = String(val);
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+  
+    function refreshStatsStrip() {
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (!res || !res.success || !res.data) return;
+          applyDevStats(res.data);
+        })
+        .withFailureHandler(function () {})
+        .getDevoteeStats();
+    }
+
+    function applyDevStats(d) {
+      animateNumber(document.getElementById('stat-total'), d.total || 0);
+      animateNumber(document.getElementById('stat-active'), d.active || 0);
+      animateNumber(document.getElementById('stat-families'), d.families || 0);
+      animateNumber(document.getElementById('stat-ambrish'), d.ambrish || 0);
+      animateNumber(document.getElementById('stat-male'), d.male || 0);
+      animateNumber(document.getElementById('stat-female'), d.female || 0);
+    }
+  
+    function buildServerFilters() {
+      function gv(id, def) {
+        var el = document.getElementById(id);
+        return el && 'value' in el ? el.value : def;
+      }
+      var st = gv('dev-filter-status', 'active');
+      return {
+        mandalID: (gv('dev-filter-mandal', '') || '').trim(),
+        subLeaderID: '',
+        karyakartaID: '',
+        status: st === 'all' ? 'all' : st,
+        devoteeType: (gv('dev-filter-type', 'all') || 'all').trim(),
+        searchQuery: String(gv('dev-search', '') || '').trim(),
+        gender: gv('dev-filter-gender', 'all') || 'all',
+        bloodGroup: gv('dev-filter-blood', 'all') || 'all',
+        ageBand: gv('dev-filter-age', 'all') || 'all',
+        page: S.serverPage || 0,
+        pageSize: S.pageSize || 50
+      };
+    }
+
+    function devCacheKey(filters) {
+      var f = filters || {};
+      return JSON.stringify({
+        mandalID: String(f.mandalID || ''),
+        status: String(f.status || ''),
+        devoteeType: String(f.devoteeType || ''),
+        searchQuery: String(f.searchQuery || ''),
+        gender: String(f.gender || ''),
+        bloodGroup: String(f.bloodGroup || ''),
+        ageBand: String(f.ageBand || ''),
+        page: Number(f.page || 0),
+        pageSize: Number(f.pageSize || 50)
+      });
+    }
+
+    function readDevCache(key) {
+      var mem = S.cacheByKey[key];
+      if (mem && mem.ts && Date.now() - mem.ts <= DEV_CACHE_TTL_MS && mem.payload) return mem.payload;
+      try {
+        var raw = localStorage.getItem(DEV_CACHE_PREFIX + key);
+        if (!raw) return null;
+        var parsed = JSON.parse(raw);
+        if (!parsed || !parsed.ts || !parsed.payload) return null;
+        if (Date.now() - Number(parsed.ts) > DEV_CACHE_TTL_MS) return null;
+        S.cacheByKey[key] = parsed;
+        return parsed.payload;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function writeDevCache(key, payload) {
+      var pack = { ts: Date.now(), payload: payload };
+      S.cacheByKey[key] = pack;
+      try { localStorage.setItem(DEV_CACHE_PREFIX + key, JSON.stringify(pack)); } catch (e) {}
+    }
+
+    function applyDevBundlePayload(payload) {
+      payload = payload || {};
+      if (!Array.isArray(payload.devotees)) return false;
+      S.devotees = payload.devotees;
+      S.filtered = payload.devotees.slice();
+      S.paging = payload.paging || {
+        page: S.serverPage,
+        pageSize: S.pageSize,
+        total: S.filtered.length,
+        totalPages: 1,
+        hasPrev: false,
+        hasNext: false
+      };
+      S.serverPage = parseInt(S.paging.page || 0, 10);
+      S.pageSize = parseInt(S.paging.pageSize || S.pageSize || 50, 10);
+      populateMandalFilter(S.devotees);
+      populateTypeFilter(S.devotees);
+      if (payload.stats) applyDevStats(payload.stats);
+      else refreshStatsStrip();
+      updateAddButtonVisibility();
+      renderDevoteeView();
+      return true;
+    }
+  
+    function populateMandalFilter(list) {
+      var sel = document.getElementById('dev-filter-mandal');
+      if (!sel) return;
+      var cur = sel.value;
+      var seen = {};
+      var opts = '<option value="">All Mandals</option>';
+      for (var i = 0; i < list.length; i++) {
+        var m = String(list[i].Mandal || list[i].MandaID || '').trim();
+        if (!m || seen[m]) continue;
+        seen[m] = true;
+        opts += '<option value="' + m.replace(/"/g, '&quot;') + '">' + m + '</option>';
+      }
+      sel.innerHTML = opts;
+      if (cur && seen[cur]) sel.value = cur;
+    }
+  
+    function populateTypeFilter(list) {
+      var sel = document.getElementById('dev-filter-type');
+      if (!sel) return;
+      var cur = sel.value;
+      var types = {};
+      for (var i = 0; i < list.length; i++) {
+        var raw = String(list[i].DevoteeType || '');
+        if (!raw) continue;
+        raw.split(/[,;|]/).forEach(function (p) {
+          var t = p.trim().toLowerCase();
+          if (t) types[t] = true;
+        });
+      }
+      var html = '<option value="all">All Types</option>';
+      Object.keys(types).sort().forEach(function (t) {
+        html += '<option value="' + t.replace(/"/g, '&quot;') + '">' + t + '</option>';
+      });
+      sel.innerHTML = html;
+      if (cur && types[cur]) sel.value = cur;
+    }
+  
+    function parseDevDobForAge(dobVal) {
+      if (!dobVal) return null;
+      if (dobVal instanceof Date && !isNaN(dobVal.getTime())) {
+        return dobVal;
+      }
+      var s = String(dobVal);
+      var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (m) return new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+      var d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+  
+    function devAgeYears(dobVal) {
+      var d = parseDevDobForAge(dobVal);
+      if (!d) return null;
+      var today = new Date();
+      var age = today.getFullYear() - d.getFullYear();
+      var mo = today.getMonth() - d.getMonth();
+      if (mo < 0 || (mo === 0 && today.getDate() < d.getDate())) age--;
+      return age;
+    }
+  
+    function devAgeBand(dobVal) {
+      var age = devAgeYears(dobVal);
+      if (age === null) return 'unknown';
+      if (age <= 12) return 'kids';
+      if (age <= 35) return 'youth';
+      if (age <= 59) return 'adult';
+      return 'senior';
+    }
+  
+    window.loadDevotees = function (opts) {
+      opts = opts || {};
+      var forceRefresh = !!opts.forceRefresh;
+      var backgroundSync = !!opts.backgroundSync;
+      var silent = !!opts.silent || backgroundSync;
+      try {
+        var filters = buildServerFilters();
+        var key = devCacheKey(filters);
+        if (!forceRefresh) {
+          var cached = readDevCache(key);
+          if (cached && applyDevBundlePayload(cached)) {
+            if (!backgroundSync) return;
+            silent = true;
+          }
+        }
+        if (!silent && window.setGlobalLoading) window.setGlobalLoading(true, 'Loading devotees...');
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!silent && window.setGlobalLoading) window.setGlobalLoading(false);
+            try {
+              if (!res || res.success !== true) {
+                var hint =
+                  (res && (res.error || res.message)) ||
+                  (typeof res === 'object' ? JSON.stringify(res).slice(0, 280) : String(res));
+                devReport('loadDevotees.successHandler', hint, null, { response: res || null, filters: filters });
+                devToast('Devotees: ' + (hint || 'unknown error'), 'error');
+                return;
+              }
+              var payload = res.data || {};
+              if (!payload || !Array.isArray(payload.devotees)) {
+                devReport('loadDevotees.invalidPayload', 'Invalid devotees payload', null, { response: res || null });
+                devToast('Devotees: invalid response (data is not an array)', 'error');
+                return;
+              }
+              writeDevCache(key, payload);
+              applyDevBundlePayload(payload);
+              if (S.devotees.length === 0 && parseInt(S.paging.total || 0, 10) > 0 && S.serverPage > 0) {
+                S.serverPage = 0;
+                loadDevotees({ forceRefresh: true, silent: silent });
+                return;
+              }
+              // If "Active only" returns empty but overall data exists, auto-relax once to avoid blank screen.
+              var stEl = document.getElementById('dev-filter-status');
+              var curStatus = stEl && stEl.value ? String(stEl.value).toLowerCase() : 'active';
+              var overallTotal = payload.stats && typeof payload.stats.total !== 'undefined'
+                ? parseInt(payload.stats.total || 0, 10)
+                : 0;
+              if (!S.devotees.length && curStatus === 'active' && overallTotal > 0 && !S.autoRelaxedStatusOnce) {
+                S.autoRelaxedStatusOnce = true;
+                if (stEl) stEl.value = 'all';
+                devToast('No active devotees found for current filters. Showing all statuses.', 'info');
+                loadDevotees({ forceRefresh: true, silent: silent });
+                return;
+              }
+              if (S.devotees.length > 0) S.autoRelaxedStatusOnce = false;
+            } catch (inner) {
+              devReport('loadDevotees.successHandler.catch', inner && inner.message ? inner.message : String(inner), inner, {
+                filters: filters,
+              });
+              devToast(inner && inner.message ? inner.message : String(inner), 'error');
+            }
+          })
+          .withFailureHandler(function (err) {
+            if (!silent && window.setGlobalLoading) window.setGlobalLoading(false);
+            devReport('loadDevotees.failureHandler', (err && err.message) || String(err), err, { filters: filters });
+            devToast((err && err.message) || String(err), 'error');
+          })
+          .getDevoteesBundle(filters);
+      } catch (outer) {
+        if (!silent && window.setGlobalLoading) window.setGlobalLoading(false);
+        devReport('loadDevotees.outerCatch', outer && outer.message ? outer.message : String(outer), outer, {});
+        devToast(outer && outer.message ? outer.message : String(outer), 'error');
+      }
+    };
+  
+    window.clearDevSearch = function () {
+      document.getElementById('dev-search').value = '';
+      loadDevotees();
+    };
+
+    function devDisplayName(d) {
+      return d.DisplayName || [d.FirstName, d.MiddleName, d.LastName].filter(Boolean).join(' ');
+    }
+
+    function devInitials(name) {
+      var parts = String(name || 'D')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      var a = (parts[0] || 'D').charAt(0).toUpperCase();
+      var b = parts.length > 1 ? parts[parts.length - 1].charAt(0).toUpperCase() : '';
+      return (a + b).slice(0, 2);
+    }
+
+    function classifyDevoteeType(d) {
+      var t = (String(d.DevoteeType || '') + ' ' + String(d.Status || '')).toLowerCase();
+      if (t.indexOf('karyakarta') !== -1) return 'karyakarta';
+      if (t.indexOf('haribhakt') !== -1 || t.indexOf('haribhak') !== -1) return 'haribhakt';
+      return 'satsangi';
+    }
+
+    function typePillHtml(d) {
+      var kind = classifyDevoteeType(d);
+      var label = kind === 'karyakarta' ? 'KARYAKARTA' : kind === 'haribhakt' ? 'HARIBHAKT' : 'SATSANGI';
+      var cls = kind === 'karyakarta' ? 'karyakarta' : kind === 'haribhakt' ? 'haribhakt' : '';
+      return { cardClass: 'dv-type-' + kind, label: label, pillClass: cls };
+    }
+
+    function relationLabel(d) {
+      var r = String(d.RelationWithHead || '').trim();
+      if (!r) return '';
+      if (r.toLowerCase() === 'self') return 'Head';
+      return r.charAt(0).toUpperCase() + r.slice(1).toLowerCase();
+    }
+
+    function parseDevSkills(d) {
+      var edu = '';
+      var occ = '';
+      String(d.Skills || '')
+        .split('|')
+        .forEach(function (part) {
+          var p = part.trim();
+          if (/^education:/i.test(p)) edu = p.replace(/^education:\s*/i, '').trim();
+          if (/^occupation:/i.test(p)) occ = p.replace(/^occupation:\s*/i, '').trim();
+        });
+      if (!occ && d.Occupation) occ = String(d.Occupation).trim();
+      if (!edu && d.Education) edu = String(d.Education).trim();
+      return { education: edu, occupation: occ };
+    }
+
+    function digitsOnly(s) {
+      return String(s || '').replace(/\D/g, '');
+    }
+
+    function paintDevListIcons() {
+      if (typeof window.paintIcons === 'function') window.paintIcons();
+      else if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }
+
+    window.expandAllFamilies = function (open) {
+      document.querySelectorAll('#devotees-list details.dv-fam').forEach(function (el) {
+        el.open = !!open;
+      });
+    };
+
+    function pickFamilyHead(members) {
+      var selfs = members.filter(function (m) {
+        return String(m.RelationWithHead || '').toLowerCase() === 'self';
+      });
+      return selfs.length ? selfs[0] : members[0];
+    }
+
+    function sortFilteredForTable(list) {
+      var key = S.tableSortKey;
+      var dir = S.tableSortDir;
+      return list.slice().sort(function (a, b) {
+        var cmp = 0;
+        if (key === 'blood') {
+          cmp = String(a.BloodGroup || '').localeCompare(String(b.BloodGroup || ''));
+        } else if (key === 'age') {
+          var ya = devAgeYears(a.DOB);
+          var yb = devAgeYears(b.DOB);
+          if (ya == null && yb == null) cmp = 0;
+          else if (ya == null) cmp = 1;
+          else if (yb == null) cmp = -1;
+          else cmp = ya - yb;
+        } else {
+          cmp = devDisplayName(a).toLowerCase().localeCompare(devDisplayName(b).toLowerCase());
+        }
+        return cmp * dir;
+      });
+    }
+
+    window.devTableSort = function (key) {
+      if (S.tableSortKey === key) S.tableSortDir *= -1;
+      else {
+        S.tableSortKey = key;
+        S.tableSortDir = 1;
+      }
+      renderDevoteeView();
+    };
+
+    function renderDevPagination() {
+      var pgEl = document.getElementById('dev-pagination');
+      if (!pgEl) return;
+      var p = S.paging || {};
+      var totalPages = Math.max(1, parseInt(p.totalPages || 1, 10));
+      var page = Math.max(0, parseInt(p.page || 0, 10));
+      var pageSize = parseInt((S.paging && S.paging.pageSize) || S.pageSize || 50, 10);
+      if (totalPages <= 1) {
+        pgEl.style.display = 'flex';
+        pgEl.innerHTML =
+          '<span class="dv-muted" style="font-size:0.9rem">Page 1 of 1</span>' +
+          '<div class="dv-pg-tools">' +
+          '<label class="dv-muted" style="font-size:0.82rem">Rows</label>' +
+          '<select onchange="changeDevPageSize(this.value)">' +
+          '<option value="25"' + (pageSize === 25 ? ' selected' : '') + '>25</option>' +
+          '<option value="50"' + (pageSize === 50 ? ' selected' : '') + '>50</option>' +
+          '<option value="100"' + (pageSize === 100 ? ' selected' : '') + '>100</option>' +
+          '</select></div>';
+        return;
+      }
+      var btns = '';
+      var start = Math.max(0, page - 2);
+      var end = Math.min(totalPages, start + 5);
+      if (end - start < 5) start = Math.max(0, end - 5);
+      for (var i = start; i < end; i++) {
+        btns += '<button type="button" class="' + (i === page ? 'active' : '') + '" onclick="goDevPage(' + i + ')">' + (i + 1) + '</button>';
+      }
+      pgEl.style.display = 'flex';
+      pgEl.innerHTML =
+        '<span class="dv-muted" style="font-size:0.9rem">Page ' +
+        (page + 1) +
+        ' of ' +
+        totalPages +
+        '</span><div class="dv-pg-btns">' +
+        '<button type="button" ' +
+        (page <= 0 ? 'disabled' : '') +
+        ' onclick="goDevPage(' +
+        (page - 1) +
+        ')"><i data-lucide="chevron-left"></i></button>' +
+        btns +
+        '<button type="button" ' +
+        (page >= totalPages - 1 ? 'disabled' : '') +
+        ' onclick="goDevPage(' +
+        (page + 1) +
+        ')"><i data-lucide="chevron-right"></i></button></div>' +
+        '<div class="dv-pg-tools">' +
+        '<label class="dv-muted" style="font-size:0.82rem">Rows</label>' +
+        '<select onchange="changeDevPageSize(this.value)">' +
+        '<option value="25"' + (pageSize === 25 ? ' selected' : '') + '>25</option>' +
+        '<option value="50"' + (pageSize === 50 ? ' selected' : '') + '>50</option>' +
+        '<option value="100"' + (pageSize === 100 ? ' selected' : '') + '>100</option>' +
+        '</select>' +
+        '<label class="dv-muted" style="font-size:0.82rem">Jump</label>' +
+        '<input type="number" min="1" max="' + totalPages + '" placeholder="Page" onkeydown="if(event.key===\'Enter\'){jumpDevPage(this.value)}">' +
+        '<button type="button" onclick="jumpDevPage(this.previousSibling.value)">Go</button>' +
+        '</div>';
+      paintDevListIcons();
+    }
+
+    function renderDevoteeView() {
+      var list = S.devotees.slice();
+      S.filtered = list;
+      var shown = list.length;
+      var total = parseInt((S.paging && S.paging.total) || shown || 0, 10);
+      var startN = total ? (S.serverPage * S.pageSize + 1) : 0;
+      var endN = total ? Math.min((S.serverPage + 1) * S.pageSize, total) : 0;
+      var pill = document.getElementById('dev-count-pill');
+      if (pill) pill.textContent = shown + ' shown';
+      document.getElementById('dev-empty').style.display = shown ? 'none' : '';
+      if (!shown) {
+        document.getElementById('dev-count').textContent = 'Showing 0 devotees';
+        document.getElementById('devotees-list').innerHTML = '';
+        renderDevPagination();
+        paintDevListIcons();
+        return;
+      }
+      document.getElementById('dev-count').textContent = 'Showing ' + startN + '-' + endN + ' of ' + total + ' devotees';
+      if (S.viewMode === 'table') renderDevoteeTable(list);
+      else if (S.viewMode === 'family') renderFamilyView(list);
+      else renderDevoteeCards(list);
+      renderDevPagination();
+    }
+
+    window.applyFilters = function () {
+      S.autoRelaxedStatusOnce = false;
+      S.serverPage = 0;
+      loadDevotees({ forceRefresh: true });
+    };
+
+    window.goDevPage = function (p) {
+      if (p < 0) return;
+      if (S.paging && p >= parseInt(S.paging.totalPages || 1, 10)) return;
+      S.serverPage = p;
+      loadDevotees({ forceRefresh: true });
+    };
+
+    window.changeDevPageSize = function (sz) {
+      var n = parseInt(sz, 10);
+      if (!n || n < 1) return;
+      S.pageSize = n;
+      S.serverPage = 0;
+      loadDevotees({ forceRefresh: true });
+    };
+
+    window.jumpDevPage = function (v) {
+      var n = parseInt(v, 10);
+      if (!n || n < 1) return;
+      goDevPage(n - 1);
+    };
+  
+    window.setDevViewMode = function (mode) {
+      S.viewMode = mode;
+      var famAct = document.getElementById('dv-family-actions');
+      if (famAct) famAct.style.display = mode === 'family' ? 'flex' : 'none';
+      ['dev-view-cards', 'dev-view-table', 'dev-view-family'].forEach(function (id) {
+        var b = document.getElementById(id);
+        if (b) b.classList.remove('active');
+      });
+      var map = { cards: 'dev-view-cards', table: 'dev-view-table', family: 'dev-view-family' };
+      var btn = document.getElementById(map[mode]);
+      if (btn) btn.classList.add('active');
+      renderDevoteeView();
+    };
+  
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  
+    window.renderDevoteeCards = function (list) {
+      var root = document.getElementById('devotees-list');
+      root.className = 'dv-grid';
+      root.innerHTML = '';
+      var u = window.HPP && window.HPP.user;
+      var isDev = u && u.role === 'devotee';
+      for (var i = 0; i < list.length; i++) {
+        var d = list[i];
+        var name = devDisplayName(d);
+        var ini = devInitials(name);
+        var tp = typePillHtml(d);
+        var sk = parseDevSkills(d);
+        var ageY = devAgeYears(d.DOB);
+        var ageStr = ageY != null ? ageY + ' yrs' : '—';
+        var workMain = sk.occupation || '—';
+        var rel = relationLabel(d);
+        var fam = d.FamilyID ? 'FAM-' + String(d.FamilyID).replace(/^FAM-?/i, '') : '—';
+        var mobDigits = digitsOnly(d.Mobile);
+        var wa = mobDigits ? 'https://wa.me/' + mobDigits : '';
+        var tel = mobDigits ? 'tel:' + mobDigits : '';
+        var card = document.createElement('article');
+        card.className = 'dv-card ' + tp.cardClass;
+        card.onclick = (function (id) {
+          return function () { openDevView(id); };
+        })(d.DevoteeID);
+        var ambr =
+          String(d.DevoteeType || '').toLowerCase().indexOf('ambrish') !== -1
+            ? ' <span class="dv-type-badge" style="margin-left:0.25rem;border-color:rgba(232,162,60,0.6);color:var(--dv-gold);">AMBRISH</span>'
+            : '';
+        card.innerHTML =
+          '<div class="dv-card-inner">' +
+          '<div class="dv-card-head">' +
+          '<div class="dv-avatar">' +
+          esc(ini) +
+          '</div>' +
+          '<div class="dv-card-names">' +
+          '<h3 class="dv-card-name">' +
+          esc(name) +
+          '</h3>' +
+          (rel ? '<div class="dv-card-relation">' + esc(rel) + '</div>' : '') +
+          '<div><span class="dv-type-badge ' +
+          tp.pillClass +
+          '">' +
+          esc(tp.label) +
+          '</span>' +
+          ambr +
+          '</div></div></div>' +
+          '<div class="dv-card-grid">' +
+          '<div class="dv-kv"><label>Mobile</label><span>' +
+          esc(d.Mobile || '—') +
+          '</span></div>' +
+          '<div class="dv-kv"><label>Age</label><span>' +
+          esc(ageStr) +
+          '</span></div>' +
+          '<div class="dv-kv"><label>Blood</label><span>' +
+          esc(d.BloodGroup || '—') +
+          '</span></div>' +
+          '<div class="dv-kv"><label>Work</label><span>' +
+          esc(workMain) +
+          '</span></div>' +
+          '</div>' +
+          '<div class="dv-card-foot">' +
+          '<span class="dv-fam-chip"><i data-lucide="users-round"></i> ' +
+          esc(fam) +
+          '</span>' +
+          '<div class="dv-actions">' +
+          (wa
+            ? '<button type="button" class="dv-icon-btn" title="WhatsApp" data-wa="' +
+              esc(wa) +
+              '"><i data-lucide="message-circle"></i></button>'
+            : '') +
+          (tel
+            ? '<button type="button" class="dv-icon-btn" title="Call" data-tel="' +
+              esc(tel) +
+              '"><i data-lucide="phone"></i></button>'
+            : '') +
+          (!isDev
+            ? '<button type="button" class="dv-icon-btn" title="Edit" data-edit="' +
+              esc(d.DevoteeID) +
+              '"><i data-lucide="pencil"></i></button>'
+            : '') +
+          '</div></div></div>';
+        root.appendChild(card);
+        card.querySelectorAll('.dv-actions button').forEach(function (btn) {
+          btn.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            if (btn.getAttribute('data-wa')) window.open(btn.getAttribute('data-wa'), '_blank');
+            else if (btn.getAttribute('data-tel')) window.location.href = btn.getAttribute('data-tel');
+            else if (btn.getAttribute('data-edit')) openDevForm('edit', btn.getAttribute('data-edit'));
+          });
+        });
+      }
+      paintDevListIcons();
+    };
+  
+    window.renderDevoteeTable = function (list) {
+      var root = document.getElementById('devotees-list');
+      root.className = 'dv-table-host';
+      var pageRows = sortFilteredForTable(list);
+      var sortMark = function (key) {
+        if (S.tableSortKey !== key) return '';
+        return S.tableSortDir > 0 ? ' ↑' : ' ↓';
+      };
+      var rows = '';
+      var u = window.HPP && window.HPP.user;
+      var isDev = u && u.role === 'devotee';
+      for (var i = 0; i < pageRows.length; i++) {
+        var d = pageRows[i];
+        var name = devDisplayName(d);
+        var ini = devInitials(name);
+        var tp = typePillHtml(d);
+        var sk = parseDevSkills(d);
+        var ageY = devAgeYears(d.DOB);
+        var famDisp = d.FamilyID ? 'FAM-' + String(d.FamilyID).replace(/^FAM-?/i, '') : '—';
+        var mobDigits = digitsOnly(d.Mobile);
+        var wa = mobDigits ? 'https://wa.me/' + mobDigits : '';
+        var tel = mobDigits ? 'tel:' + mobDigits : '';
+        rows +=
+          '<tr data-id="' +
+          esc(d.DevoteeID) +
+          '">' +
+          '<td class="dv-td-name"><div class="dv-row-name"><div class="dv-avatar-sm">' +
+          esc(ini) +
+          '</div><div><div class="dv-cell-primary">' +
+          esc(name) +
+          '</div>' +
+          (relationLabel(d) ? '<div class="dv-cell-sub">' + esc(relationLabel(d)) + '</div>' : '') +
+          '</div></div></td>' +
+          '<td><span class="dv-fam-id">' +
+          esc(famDisp) +
+          '</span></td>' +
+          '<td>' +
+          esc(d.Mobile || '—') +
+          '</td>' +
+          '<td><span class="dv-type-pill ' +
+          tp.pillClass +
+          '">' +
+          esc(tp.label) +
+          '</span></td>' +
+          '<td style="text-align:center">' +
+          esc(d.BloodGroup || '—') +
+          '</td>' +
+          '<td><div class="dv-cell-primary">' +
+          esc(sk.occupation || '—') +
+          '</div>' +
+          (sk.education ? '<div class="dv-cell-sub">' + esc(sk.education) + '</div>' : '') +
+          '</td>' +
+          '<td>' +
+          esc(ageY != null ? String(ageY) : '—') +
+          '</td>' +
+          '<td><div class="dv-actions">' +
+          (wa
+            ? '<button type="button" class="dv-icon-btn" data-wa="' +
+              esc(wa) +
+              '" title="WhatsApp"><i data-lucide="message-circle"></i></button>'
+            : '') +
+          (tel
+            ? '<button type="button" class="dv-icon-btn" data-tel="' +
+              esc(tel) +
+              '" title="Call"><i data-lucide="phone"></i></button>'
+            : '') +
+          (!isDev
+            ? '<button type="button" class="dv-icon-btn" data-edit="' +
+              esc(d.DevoteeID) +
+              '" title="Edit"><i data-lucide="pencil"></i></button>'
+            : '') +
+          '</div></td></tr>';
+      }
+      root.innerHTML =
+        '<div class="dv-table-wrap"><table class="dv-table"><thead><tr>' +
+        '<th style="cursor:pointer" onclick="devTableSort(\'name\')">Name' +
+        sortMark('name') +
+        '</th>' +
+        '<th>Family</th><th>Mobile</th><th>Type</th>' +
+        '<th style="cursor:pointer;text-align:center" onclick="devTableSort(\'blood\')">Blood' +
+        sortMark('blood') +
+        '</th>' +
+        '<th>Occupation</th>' +
+        '<th style="cursor:pointer" onclick="devTableSort(\'age\')">Age' +
+        sortMark('age') +
+        '</th><th>Actions</th></tr></thead><tbody>' +
+        rows +
+        '</tbody></table></div>';
+      root.querySelectorAll('tbody tr').forEach(function (tr) {
+        tr.addEventListener('click', function (e) {
+          if (e.target.closest && e.target.closest('.dv-actions')) return;
+          openDevView(tr.getAttribute('data-id'));
+        });
+      });
+      root.querySelectorAll('.dv-actions button').forEach(function (btn) {
+        btn.addEventListener('click', function (ev) {
+          ev.stopPropagation();
+          if (btn.getAttribute('data-wa')) window.open(btn.getAttribute('data-wa'), '_blank');
+          else if (btn.getAttribute('data-tel')) window.location.href = btn.getAttribute('data-tel');
+          else if (btn.getAttribute('data-edit')) openDevForm('edit', btn.getAttribute('data-edit'));
+        });
+      });
+      paintDevListIcons();
+    };
+  
+    window.renderFamilyView = function (list) {
+      var root = document.getElementById('devotees-list');
+      root.className = 'dv-family-host';
+      root.innerHTML = '';
+      var groups = {};
+      for (var i = 0; i < list.length; i++) {
+        var d = list[i];
+        var fid = d.FamilyID || '—';
+        if (!groups[fid]) groups[fid] = [];
+        groups[fid].push(d);
+      }
+      var fids = Object.keys(groups).sort();
+      for (var j = 0; j < fids.length; j++) {
+        var fid = fids[j];
+        var members = groups[fid];
+        var head = pickFamilyHead(members);
+        var headName = devDisplayName(head);
+        var famLabel = fid !== '—' ? 'FAM-' + String(fid).replace(/^FAM-?/i, '') : '—';
+        var addr = '';
+        var kId = '';
+        members.forEach(function (m) {
+          if (!addr && m.Address) addr = String(m.Address).trim();
+          if (!kId && (m.KaryakartaName || m.KaryakartaID)) kId = String(m.KaryakartaName || m.KaryakartaID).trim();
+        });
+        var det = document.createElement('details');
+        det.className = 'dv-fam';
+        var sum = document.createElement('summary');
+        sum.innerHTML =
+          '<span class="dv-fam-ico"><i data-lucide="git-branch"></i></span>' +
+          '<span class="dv-fam-title">' +
+          esc(famLabel) +
+          ' · ' +
+          esc(headName) +
+          '</span>' +
+          '<span class="dv-fam-head-badge">Head</span>' +
+          '<span class="dv-fam-count">' +
+          members.length +
+          (members.length === 1 ? ' member' : ' members') +
+          '</span>' +
+          '<span class="dv-fam-chev"><i data-lucide="chevron-down"></i></span>' +
+          (addr ? '<div class="dv-fam-sub">' + esc(addr.length > 90 ? addr.slice(0, 87) + '…' : addr) + '</div>' : '');
+        det.appendChild(sum);
+        var body = document.createElement('div');
+        body.className = 'dv-fam-body';
+        for (var k = 0; k < members.length; k++) {
+          var m = members[k];
+          var nm = devDisplayName(m);
+          var ini2 = devInitials(nm);
+          var rel = relationLabel(m) || String(m.RelationWithHead || '').trim() || 'Member';
+          var mc = document.createElement('div');
+          mc.className = 'dv-member';
+          mc.innerHTML =
+            '<div class="dv-member-top"><div class="dv-avatar">' +
+            esc(ini2) +
+            '</div><div style="min-width:0"><p class="dv-member-name">' +
+            esc(nm) +
+            '</p><span class="dv-member-rel">' +
+            esc(rel) +
+            '</span></div></div>' +
+            '<div class="dv-member-mobile">' +
+            esc(m.Mobile || '—') +
+            '</div>' +
+            '<div class="dv-member-blood">' +
+            esc(m.BloodGroup || '—') +
+            '</div>';
+          mc.style.cursor = 'pointer';
+          mc.onclick = (function (id) {
+            return function () { openDevView(id); };
+          })(m.DevoteeID);
+          body.appendChild(mc);
+        }
+        det.appendChild(body);
+        var foot = document.createElement('div');
+        foot.className = 'dv-fam-footer';
+        var footTxt = kId ? 'Karyakarta: ' + kId : '';
+        if (addr) {
+          foot.innerHTML =
+            '<i data-lucide="map-pin"></i><span>' +
+            esc(footTxt ? footTxt + ' · ' + addr : addr) +
+            '</span>';
+        } else if (footTxt) {
+          foot.innerHTML = '<span>' + esc(footTxt) + '</span>';
+        } else {
+          foot.innerHTML = '';
+        }
+        if (foot.innerHTML) det.appendChild(foot);
+        root.appendChild(det);
+      }
+      paintDevListIcons();
+    };
+  
+    function updateAddButtonVisibility() {
+      var u = window.HPP && window.HPP.user;
+      var hide = u && u.role === 'devotee';
+      var btn = document.getElementById('dev-btn-add');
+      if (btn) btn.style.display = hide ? 'none' : '';
+    }
+  
+    window.selectDevGender = function (g) {
+      S.selectedGender = g || '';
+      var row = document.getElementById('dev-gender-row');
+      if (!row) return;
+      row.querySelectorAll('button').forEach(function (b) {
+        if (!g) b.classList.remove('selected');
+        else b.classList.toggle('selected', b.getAttribute('data-g') === g);
+      });
+    };
+  
+    window.toggleDevRefBlock = function () {};
+  
+    function wireTypeChips() {
+      document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
+        b.onclick = function () {
+          b.classList.toggle('on');
+        };
+      });
+    }
+
+    function extractDriveFileId(url) {
+      var s = String(url || '');
+      var m = s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m) return m[1];
+      m = s.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (m) return m[1];
+      return '';
+    }
+
+    function resolveDevPhotoUrl(photoVal) {
+      var raw = String(photoVal || '').trim();
+      if (!raw) return '';
+      var parts = raw.split('|').map(function (p) { return String(p || '').trim(); }).filter(Boolean);
+      if (!parts.length) parts = [raw];
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        if (/^data:image\//i.test(p)) return p;
+        if (/^https?:\/\//i.test(p)) {
+          var fid = extractDriveFileId(p);
+          if (fid) return 'https://drive.google.com/thumbnail?id=' + fid + '&sz=w1200';
+          return p;
+        }
+      }
+      return '';
+    }
+
+    function setDevPhotoPreview(photoVal) {
+      var box = document.getElementById('dev-photo-preview');
+      if (!box) return;
+      var v = resolveDevPhotoUrl(photoVal);
+      if (v) {
+        box.innerHTML = '<img src="' + v.replace(/"/g, '') + '" alt="Photo">';
+      } else {
+        box.textContent = 'DP';
+      }
+    }
+
+    window.triggerDevPhotoUpload = function () {
+      var fi = document.getElementById('dev-photo-file');
+      if (fi) fi.click();
+    };
+
+    window.clearDevPhoto = function () {
+      var fi = document.getElementById('dev-photo-file');
+      var hidden = document.getElementById('dev-photo-url');
+      if (fi) fi.value = '';
+      if (hidden) hidden.value = '';
+      setDevPhotoPreview('');
+    };
+
+    function readDevPhotoFile(file) {
+      if (!file) return;
+      if (!/^image\//i.test(file.type || '')) {
+        devToast('Please choose an image file', 'error');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function () {
+        var src = String(reader.result || '');
+        var img = new Image();
+        img.onload = function () {
+          var maxW = 720;
+          var maxH = 720;
+          var w = img.width || maxW;
+          var h = img.height || maxH;
+          var scale = Math.min(1, maxW / w, maxH / h);
+          var tw = Math.max(1, Math.round(w * scale));
+          var th = Math.max(1, Math.round(h * scale));
+          var c = document.createElement('canvas');
+          c.width = tw;
+          c.height = th;
+          var ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, tw, th);
+          var out = c.toDataURL('image/jpeg', 0.82);
+          document.getElementById('dev-photo-url').value = out;
+          setDevPhotoPreview(out);
+          devToast('Photo ready', 'success');
+        };
+        img.onerror = function () {
+          devToast('Could not read selected image', 'error');
+        };
+        img.src = src;
+      };
+      reader.onerror = function () {
+        devToast('Could not read selected image', 'error');
+      };
+      reader.readAsDataURL(file);
+    }
+  
+    function collectDevoteeTypes() {
+      var parts = [];
+      document.querySelectorAll('#dev-type-chips button.on').forEach(function (b) {
+        parts.push(b.getAttribute('data-type'));
+      });
+      if (document.getElementById('dev-ambrish').checked) parts.push('ambrish');
+      return parts.filter(Boolean).join(',');
+    }
+  
+    function dobToDdMmYyyy(isoDateStr) {
+      if (!isoDateStr) return '';
+      var m = String(isoDateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!m) return '';
+      return m[3] + '/' + m[2] + '/' + m[1];
+    }
+  
+    function isoFromInputDate(val) {
+      if (!val) return '';
+      return val;
+    }
+  
+    window.openDevForm = function (mode, devoteeID) {
+      S.formMode = mode || 'add';
+      S.editingId = devoteeID || null;
+      S.editingRow = null;
+      document.getElementById('dev-form-title').textContent =
+        S.formMode === 'edit' ? 'Edit Devotee' : 'Add Devotee';
+      document.getElementById('dev-form-sheet').classList.add('open');
+      document.getElementById('dev-form-sheet').setAttribute('aria-hidden', 'false');
+      var bd = document.getElementById('dev-form-backdrop');
+      if (bd) bd.classList.add('open');
+  
+      if (S.formMode === 'add') {
+        [
+          'dev-first','dev-middle','dev-last','dev-mobile','dev-dob','dev-address',
+          'dev-photo-url','dev-mandal','dev-leader','dev-karyakarta','dev-ref-search','dev-ref-id',
+          'dev-diksha','dev-panchamrut','dev-education','dev-occupation','dev-emergency'
+        ].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        document.getElementById('dev-relation').value = 'Self';
+        document.getElementById('dev-ambrish').checked = false;
+        document.getElementById('dev-elderly').checked = false;
+        document.getElementById('dev-blood').value = '';
+        clearDevPhoto();
+        document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
+          b.classList.remove('on');
+        });
+        S.selectedGender = '';
+        selectDevGender('');
+        var u = window.HPP && window.HPP.user;
+        if (u && u.mandalID) document.getElementById('dev-mandal').value = u.mandalID;
+        paintDevListIcons();
+      } else if (devoteeID) {
+        if (window.setGlobalLoading) window.setGlobalLoading(true, 'Loading devotee...');
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (window.setGlobalLoading) window.setGlobalLoading(false);
+            if (!res || !res.success || !res.data) {
+              devToast((res && res.error) || 'Load failed', 'error');
+              return;
+            }
+            var d = res.data;
+            S.editingRow = d._rowIndex;
+            document.getElementById('dev-first').value = d.FirstName || '';
+            document.getElementById('dev-middle').value = d.MiddleName || '';
+            document.getElementById('dev-last').value = d.LastName || '';
+            document.getElementById('dev-mobile').value = d.Mobile || '';
+            document.getElementById('dev-dob').value = d.DOB
+              ? String(d.DOB).substring(0, 10)
+              : '';
+            document.getElementById('dev-address').value = d.Address || '';
+            document.getElementById('dev-photo-url').value = d.Photo || '';
+            setDevPhotoPreview(d.Photo || '');
+            document.getElementById('dev-mandal').value = d.Mandal || d.MandaID || '';
+            document.getElementById('dev-leader').value = d.KaryakartaLeaderName || d.SubLeaderID || '';
+            document.getElementById('dev-karyakarta').value = d.KaryakartaName || d.KaryakartaID || '';
+            document.getElementById('dev-ref-id').value = '';
+            document.getElementById('dev-relation').value = d.RelationWithHead || 'Self';
+            document.getElementById('dev-diksha').value = d.DikashaLevel || '';
+            document.getElementById('dev-panchamrut').value = d.Panchamrut || '';
+            document.getElementById('dev-blood').value = d.BloodGroup || '';
+            document.getElementById('dev-emergency').value = d.EmergencyContact || '';
+            document.getElementById('dev-elderly').checked = !!d.IsElderly;
+            var dtype = String(d.DevoteeType || '').toLowerCase();
+            document.getElementById('dev-ambrish').checked = dtype.indexOf('ambrish') !== -1;
+            document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
+              var t = b.getAttribute('data-type');
+              b.classList.toggle('on', dtype.indexOf(t) !== -1);
+            });
+            var g = String(d.Gender || '').toLowerCase();
+            if (g === 'm' || g === 'male') selectDevGender('male');
+            else if (g === 'f' || g === 'female') selectDevGender('female');
+            else if (g) selectDevGender('other');
+            else selectDevGender('');
+            paintDevListIcons();
+          })
+          .withFailureHandler(function (e) {
+            if (window.setGlobalLoading) window.setGlobalLoading(false);
+            devToast((e && e.message) || String(e), 'error');
+          })
+          .getDevoteeById(devoteeID);
+      }
+    };
+  
+    window.closeDevForm = function () {
+      document.getElementById('dev-form-sheet').classList.remove('open');
+      document.getElementById('dev-form-sheet').setAttribute('aria-hidden', 'true');
+      var bd = document.getElementById('dev-form-backdrop');
+      if (bd) bd.classList.remove('open');
+      var fi = document.getElementById('dev-photo-file');
+      if (fi) fi.value = '';
+      document.getElementById('dev-ref-results').style.display = 'none';
+      document.getElementById('dev-ref-results').innerHTML = '';
+    };
+  
+    window.submitDevoteeForm = function () {
+      var first = document.getElementById('dev-first').value.trim();
+      var last = document.getElementById('dev-last').value.trim();
+      if (!first || !last) {
+        devToast('First and last name are required', 'error');
+        return;
+      }
+      var payload = {
+        FirstName: first,
+        MiddleName: document.getElementById('dev-middle').value.trim(),
+        LastName: last,
+        Mobile: document.getElementById('dev-mobile').value.trim(),
+        DOB: document.getElementById('dev-dob').value,
+        Address: document.getElementById('dev-address').value.trim(),
+        Photo: document.getElementById('dev-photo-url').value.trim(),
+        Mandal: document.getElementById('dev-mandal').value.trim(),
+        KaryakartaLeaderName: document.getElementById('dev-leader').value.trim(),
+        KaryakartaName: document.getElementById('dev-karyakarta').value.trim(),
+        RelationWithHead: document.getElementById('dev-relation').value,
+        Reference: document.getElementById('dev-ref-search').value.trim(),
+        ReferenceLookupID: document.getElementById('dev-ref-id').value.trim(),
+        DevoteeType: collectDevoteeTypes(),
+        DikashaLevel: document.getElementById('dev-diksha').value.trim(),
+        Panchamrut: document.getElementById('dev-panchamrut').value.trim(),
+        BloodGroup: document.getElementById('dev-blood').value,
+        EmergencyContact: document.getElementById('dev-emergency').value.trim(),
+        Education: document.getElementById('dev-education').value.trim(),
+        Occupation: document.getElementById('dev-occupation').value.trim(),
+        IsElderly: document.getElementById('dev-elderly').checked,
+        Gender: S.selectedGender
+      };
+  
+      if (S.formMode === 'edit' && S.editingRow != null) {
+        payload._rowIndex = S.editingRow;
+        if (window.setGlobalLoading) window.setGlobalLoading(true, 'Saving devotee...');
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (window.setGlobalLoading) window.setGlobalLoading(false);
+            if (!res || !res.success) {
+              devToast((res && res.error) || 'Update failed', 'error');
+              return;
+            }
+            devToast((res.data && res.data.message) || 'Saved', 'success');
+            closeDevForm();
+            loadDevotees();
+          })
+          .withFailureHandler(function (e) {
+            if (window.setGlobalLoading) window.setGlobalLoading(false);
+            devToast((e && e.message) || String(e), 'error');
+          })
+          .updateDevotee(payload);
+      } else {
+        if (window.setGlobalLoading) window.setGlobalLoading(true, 'Saving devotee...');
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (window.setGlobalLoading) window.setGlobalLoading(false);
+            if (!res || !res.success) {
+              devToast((res && res.error) || 'Add failed', 'error');
+              return;
+            }
+            devToast('Devotee created', 'success');
+            closeDevForm();
+            loadDevotees();
+          })
+          .withFailureHandler(function (e) {
+            if (window.setGlobalLoading) window.setGlobalLoading(false);
+            devToast((e && e.message) || String(e), 'error');
+          })
+          .addDevotee(payload);
+      }
+    };
+  
+    function dvProfileRow(icon, label, rawVal) {
+      var v = rawVal == null ? '' : String(rawVal).trim();
+      if (!v) return '';
+      return (
+        '<div class="dv-profile-row">' +
+        '<span class="dv-profile-row-ico"><i data-lucide="' +
+        icon +
+        '"></i></span>' +
+        '<div class="dv-profile-row-txt"><span class="dv-profile-row-label">' +
+        esc(label) +
+        '</span><span class="dv-profile-row-val">' +
+        esc(v) +
+        '</span></div></div>'
+      );
+    }
+
+    function dvProfileRowHtml(icon, label, htmlVal) {
+      if (!htmlVal) return '';
+      return (
+        '<div class="dv-profile-row">' +
+        '<span class="dv-profile-row-ico"><i data-lucide="' +
+        icon +
+        '"></i></span>' +
+        '<div class="dv-profile-row-txt"><span class="dv-profile-row-label">' +
+        esc(label) +
+        '</span><span class="dv-profile-row-val">' +
+        htmlVal +
+        '</span></div></div>'
+      );
+    }
+
+    window.openDevView = function (devoteeID) {
+      if (window.setGlobalLoading) window.setGlobalLoading(true, 'Loading profile...');
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (window.setGlobalLoading) window.setGlobalLoading(false);
+          if (!res || !res.success || !res.data) {
+            devToast((res && res.error) || 'Not found', 'error');
+            return;
+          }
+          var d = res.data;
+          S.currentViewDevotee = d;
+          var body = document.getElementById('dev-view-body');
+          var name = devDisplayName(d);
+          var initials = devInitials(name);
+          var photoRaw = resolveDevPhotoUrl(d.Photo || '');
+          var photoInner =
+            /^(https?:\/\/|data:image\/)/i.test(photoRaw)
+              ? '<img src="' + photoRaw.replace(/"/g, '') + '" alt="">'
+              : esc(initials);
+          var tp = typePillHtml(d);
+          var st = String(d.Status || '').toLowerCase();
+          var isActive = st === 'active' || st === '';
+          var statusBadgeCls = isActive ? 'dv-profile-badge--active' : 'dv-profile-badge--inactive';
+          var mobDigits = digitsOnly(d.Mobile);
+          var wa = mobDigits ? 'https://wa.me/' + mobDigits : '';
+          var tel = mobDigits ? 'tel:' + mobDigits : '';
+          var sk = parseDevSkills(d);
+          var ageY = devAgeYears(d.DOB);
+          var ageLine = ageY != null ? ageY + ' years' : '';
+
+          var mobileHtml = '';
+          if (String(d.Mobile || '').trim()) {
+            mobileHtml +=
+              '<a href="' +
+              esc(tel) +
+              '">' +
+              esc(d.Mobile) +
+              '</a>';
+            if (wa) {
+              mobileHtml +=
+                ' · <a href="' +
+                esc(wa) +
+                '" target="_blank" rel="noopener">WhatsApp</a>';
+            }
+          }
+          var emailHtml = '';
+          var em = String(d.Email || '').trim();
+          if (em) {
+            emailHtml =
+              '<a href="mailto:' +
+              encodeURIComponent(em) +
+              '">' +
+              esc(em) +
+              '</a>';
+          }
+
+          var identityBlock =
+            dvProfileRow('fingerprint', 'Devotee ID', d.DevoteeID) +
+            dvProfileRow('users-round', 'Family ID', d.FamilyID) +
+            dvProfileRow('building-2', 'Mandal', d.Mandal || d.MandaID) +
+            dvProfileRow('user-cog', 'Karyakarta Leader', d.KaryakartaLeaderName || d.SubLeaderID) +
+            dvProfileRow('badge-check', 'Karyakarta', d.KaryakartaName || d.KaryakartaID);
+
+          var contactBlock =
+            (mobileHtml ? dvProfileRowHtml('smartphone', 'Mobile', mobileHtml) : '') +
+            (emailHtml ? dvProfileRowHtml('mail', 'Email', emailHtml) : '');
+
+          var dobDisp = d.DOB == null ? '' : String(d.DOB);
+          var personalBlock =
+            (dobDisp ? dvProfileRow('calendar', 'Date of birth', dobDisp) : '') +
+            (ageLine ? dvProfileRow('hourglass', 'Age', ageLine) : '') +
+            dvProfileRow('user', 'Gender', d.Gender) +
+            dvProfileRow('droplet', 'Blood group', d.BloodGroup) +
+            (sk.occupation ? dvProfileRow('briefcase', 'Occupation', sk.occupation) : '') +
+            (sk.education ? dvProfileRow('graduation-cap', 'Education', sk.education) : '');
+
+          var spiritualBlock =
+            dvProfileRow('sparkles', 'Devotee type', d.DevoteeType) +
+            dvProfileRow('flame', 'Diksha level', d.DikashaLevel) +
+            dvProfileRow('droplets', 'Panchamrut', d.Panchamrut);
+
+          var addrSkills =
+            dvProfileRow('home', 'Address', d.Address) +
+            dvProfileRow('book-open', 'Skills & education', d.Skills);
+
+          function profileCard(title, icon, inner) {
+            if (!inner) return '';
+            return (
+              '<section class="dv-profile-card"><div class="dv-profile-card-h">' +
+              '<i data-lucide="' +
+              icon +
+              '"></i> ' +
+              esc(title) +
+              '</div><div class="dv-profile-card-b">' +
+              inner +
+              '</div></section>'
+            );
+          }
+
+          body.innerHTML =
+            '<div class="dv-profile-hero">' +
+            '<div class="dv-profile-hero-inner">' +
+            '<div class="dv-profile-photo">' +
+            photoInner +
+            '</div>' +
+            '<div style="flex:1;min-width:0">' +
+            '<h2 class="dv-profile-name">' +
+            esc(name) +
+            '</h2>' +
+            '<div class="dv-profile-badges">' +
+            '<span class="dv-profile-badge ' +
+            statusBadgeCls +
+            '">' +
+            esc(
+              (d.Status && String(d.Status).trim()
+                ? String(d.Status)
+                : isActive
+                  ? 'Active'
+                  : 'Member'
+              ).toUpperCase()
+            ) +
+            '</span>' +
+            '<span class="dv-profile-badge dv-profile-badge--type ' +
+            tp.pillClass +
+            '">' +
+            esc(tp.label) +
+            '</span>' +
+            '</div>' +
+            '<div class="dv-profile-quick">' +
+            (wa
+              ? '<a class="dv-profile-qbtn" href="' +
+                esc(wa) +
+                '" target="_blank" rel="noopener"><i data-lucide="message-circle"></i> WhatsApp</a>'
+              : '') +
+            (tel
+              ? '<a class="dv-profile-qbtn" href="' +
+                esc(tel) +
+                '"><i data-lucide="phone"></i> Call</a>'
+              : '') +
+            '</div></div></div></div>' +
+            profileCard('Identity & organization', 'layers', identityBlock) +
+            profileCard('Contact', 'phone', contactBlock) +
+            profileCard('Personal', 'user-circle', personalBlock) +
+            profileCard('Spiritual', 'sun', spiritualBlock) +
+            profileCard('Address & notes', 'file-text', addrSkills) +
+            '<div class="dv-profile-card" style="border-style:none;background:transparent;padding:0">' +
+            '<h3 class="dv-profile-fam-head"><i data-lucide="users-round"></i> Family members</h3>' +
+            '<div id="dev-view-family-list" class="dv-profile-loading">Please wait...</div></div>';
+
+          document.getElementById('dev-view-modal').classList.add('open');
+          document.getElementById('dev-view-modal').setAttribute('aria-hidden', 'false');
+
+          var u = window.HPP && window.HPP.user;
+          var isDev = u && u.role === 'devotee';
+          document.getElementById('dev-view-delete').style.display = isDev ? 'none' : '';
+          document.getElementById('dev-view-edit').style.display = isDev ? 'none' : '';
+
+          paintDevListIcons();
+
+          google.script.run
+            .withSuccessHandler(function (res2) {
+              var el = document.getElementById('dev-view-family-list');
+              if (!el) return;
+              if (!res2 || !res2.success) {
+                el.className = 'dv-profile-empty';
+                el.textContent = 'Could not load family';
+                return;
+              }
+              var members = res2.data || [];
+              if (!members.length) {
+                el.className = 'dv-profile-empty';
+                el.textContent = 'No other members in this family.';
+                paintDevListIcons();
+                return;
+              }
+              el.className = 'dv-profile-fam-grid';
+              var curVid = String(d.DevoteeID || '');
+              el.innerHTML = members
+                .map(function (m) {
+                  var n = devDisplayName(m);
+                  var ini = devInitials(n);
+                  var mid = String(m.DevoteeID || '').replace(/"/g, '');
+                  var curCls =
+                    curVid && String(m.DevoteeID || '') === curVid ? ' dv-profile-fam-card--current' : '';
+                  return (
+                    '<button type="button" class="dv-profile-fam-card' +
+                    curCls +
+                    '" data-mid="' +
+                    esc(mid) +
+                    '">' +
+                    '<span class="dv-profile-fam-av">' +
+                    esc(ini) +
+                    '</span>' +
+                    '<span class="dv-profile-fam-name">' +
+                    esc(n) +
+                    '</span>' +
+                    '<span class="dv-profile-fam-meta">' +
+                    esc(m.Mobile || '—') +
+                    '</span></button>'
+                  );
+                })
+                .join('');
+              el.querySelectorAll('.dv-profile-fam-card').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                  var id = btn.getAttribute('data-mid');
+                  if (id) openDevView(id);
+                });
+              });
+              paintDevListIcons();
+            })
+            .getFamilyMembers(d.FamilyID || '');
+        })
+        .withFailureHandler(function (e) {
+          if (window.setGlobalLoading) window.setGlobalLoading(false);
+          devToast((e && e.message) || String(e), 'error');
+        })
+        .getDevoteeById(devoteeID);
+    };
+  
+    window.closeDevView = function () {
+      document.getElementById('dev-view-modal').classList.remove('open');
+      document.getElementById('dev-view-modal').setAttribute('aria-hidden', 'true');
+      S.currentViewDevotee = null;
+    };
+  
+    window.editFromDevView = function () {
+      if (!S.currentViewDevotee) return;
+      var id = S.currentViewDevotee.DevoteeID;
+      closeDevView();
+      openDevForm('edit', id);
+    };
+  
+    window.deleteFromDevView = function () {
+      if (!S.currentViewDevotee) return;
+      var pwd = window.prompt('Enter delete password:');
+      if (pwd === null) return;
+      var id = S.currentViewDevotee.DevoteeID;
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (!res || !res.success) {
+            devToast((res && res.error) || 'Delete failed', 'error');
+            return;
+          }
+          devToast((res.data && res.data.message) || 'Updated', 'success');
+          closeDevView();
+          loadDevotees();
+        })
+        .withFailureHandler(function (e) {
+          devToast((e && e.message) || String(e), 'error');
+        })
+        .deleteDevotee(id, pwd);
+    };
+  
+    window.deleteDevotee = function (devoteeID) {
+      var pwd = window.prompt('Enter delete password:');
+      if (pwd === null) return;
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (!res || !res.success) {
+            devToast((res && res.error) || 'Delete failed', 'error');
+            return;
+          }
+          devToast((res.data && res.data.message) || 'Updated', 'success');
+          loadDevotees();
+        })
+        .withFailureHandler(function (e) {
+          devToast((e && e.message) || String(e), 'error');
+        })
+        .deleteDevotee(devoteeID, pwd);
+    };
+  
+    window.exportDevoteesExcel = function () {
+      var rows = S.filtered.length ? S.filtered : S.devotees;
+      var headers = [
+        'DevoteeID',
+        'FamilyID',
+        'Mandal',
+        'FirstName',
+        'LastName',
+        'Mobile',
+        'Gender',
+        'Status',
+        'DevoteeType',
+        'DOB'
+      ];
+      var lines = [headers.join(',')];
+      for (var i = 0; i < rows.length; i++) {
+        var d = rows[i];
+        var line = headers.map(function (h) {
+          var v = d[h];
+          if (v instanceof Date) v = v.toISOString();
+          v = v == null ? '' : String(v);
+          if (v.indexOf(',') !== -1 || v.indexOf('"') !== -1) {
+            v = '"' + v.replace(/"/g, '""') + '"';
+          }
+          return v;
+        });
+        lines.push(line.join(','));
+      }
+      var blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'devotees_export.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      devToast('CSV downloaded', 'success');
+    };
+  
+    document.getElementById('dev-search').addEventListener('input', function () {
+      var hs = document.getElementById('header-search-input');
+      if (hs && hs.value !== this.value) hs.value = this.value;
+      clearTimeout(S._searchT);
+      S._searchT = setTimeout(function () {
+        applyFilters();
+      }, 350);
+    });
+  
+    document.getElementById('dev-ref-search').addEventListener('input', function () {
+      var q = document.getElementById('dev-ref-search').value.trim();
+      var box = document.getElementById('dev-ref-results');
+      clearTimeout(S.refTimer);
+      if (q.length < 2) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+      }
+      S.refTimer = setTimeout(function () {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success) return;
+            var list = res.data || [];
+            box.innerHTML = '';
+            list.forEach(function (item) {
+              var b = document.createElement('button');
+              b.type = 'button';
+              b.textContent = item.Name + ' · ' + item.Mobile + ' · ' + item.DevoteeID;
+              b.onclick = function () {
+                document.getElementById('dev-ref-id').value = item.DevoteeID;
+                document.getElementById('dev-ref-search').value = item.Name;
+                box.style.display = 'none';
+              };
+              box.appendChild(b);
+            });
+            box.style.display = list.length ? 'block' : 'none';
+          })
+          .searchDevotees(q);
+      }, 250);
+    });
+  
+    (function bindDevoteeFormTriggers() {
+      var addBtn = document.getElementById('dev-btn-add');
+      if (addBtn) {
+        addBtn.addEventListener('click', function () {
+          openDevForm('add');
+        });
+      }
+      var fi = document.getElementById('dev-photo-file');
+      if (fi) {
+        fi.addEventListener('change', function (e) {
+          var f = e && e.target && e.target.files && e.target.files[0];
+          readDevPhotoFile(f);
+        });
+      }
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var sheet = document.getElementById('dev-form-sheet');
+        if (sheet && sheet.classList.contains('open')) closeDevForm();
+      });
+    })();
+
+    wireTypeChips();
+  </script>
+  

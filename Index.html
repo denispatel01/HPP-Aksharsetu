@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <?!= include('Stylesheet') ?>
+</head>
+<body>
+  <div id="login-page">
+    <?!= include('LoginPage') ?>
+  </div>
+  <div id="app" class="app-root is-mobile" style="display:none">
+    <div id="nav-overlay" class="nav-overlay" onclick="closeSidebar()" aria-hidden="true"></div>
+    <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+      <div class="sidebar-brand">
+        <div class="brand-mark" aria-hidden="true">HPP</div>
+        <div class="brand-text">
+          <span class="brand-title">HPP - Akshar Setu</span>
+          <span class="brand-sub">તારે લઈને હું</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button type="button" class="nav-item" data-page="dashboard" onclick="navTo('dashboard')"><i data-lucide="layout-dashboard"></i><span class="nav-label">Dashboard</span></button>
+        <button type="button" class="nav-item" data-page="devotees" onclick="navTo('devotees')"><i data-lucide="users"></i><span class="nav-label">Devotees</span></button>
+        <button type="button" class="nav-item" data-page="sabha" onclick="navTo('sabha')"><i data-lucide="book-open"></i><span class="nav-label">Sabha</span></button>
+        <button type="button" class="nav-item" data-page="attendance" onclick="navTo('attendance')"><i data-lucide="clipboard-check"></i><span class="nav-label">Attendance</span></button>
+        <button type="button" class="nav-item" data-page="followup" onclick="navTo('followup')"><i data-lucide="phone-forwarded"></i><span class="nav-label">Follow-ups</span></button>
+        <button type="button" class="nav-item" data-page="birthday" onclick="navTo('birthday')"><i data-lucide="cake"></i><span class="nav-label">Birthdays</span></button>
+        <button type="button" class="nav-item" data-page="events" onclick="navTo('events')"><i data-lucide="calendar-range"></i><span class="nav-label">Events</span></button>
+        <button type="button" class="nav-item" data-page="seva" onclick="navTo('seva')"><i data-lucide="hand-heart"></i><span class="nav-label">Seva</span></button>
+        <button type="button" class="nav-item" data-page="reports" onclick="navTo('reports')"><i data-lucide="file-bar-chart-2"></i><span class="nav-label">Reports</span></button>
+        <button type="button" class="nav-item" data-page="settings" onclick="navTo('settings')"><i data-lucide="settings"></i><span class="nav-label">Settings</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <span class="sidebar-user-name" id="sidebar-user-name">—</span>
+          <span class="sidebar-user-email" id="sidebar-user-email">—</span>
+        </div>
+        <button type="button" class="btn-secondary btn-block sidebar-logout-btn" onclick="handleLogout()">
+          <i data-lucide="log-out"></i>
+          <span class="logout-label">Log out</span>
+        </button>
+      </div>
+    </aside>
+    <div class="app-main">
+      <header id="header" class="header">
+        <div class="header-menu">
+          <button type="button" class="icon-btn" id="btn-menu" onclick="toggleSidebar()" aria-label="Toggle navigation">
+            <i data-lucide="menu"></i>
+          </button>
+        </div>
+        <div class="header-titles">
+          <div class="header-page-title" id="header-page-title">Dashboard</div>
+          <div class="header-page-sub" id="header-page-sub">Overview</div>
+        </div>
+        <div class="header-search">
+          <input type="search" id="header-search-input" placeholder="Search name, mobile, family, address…" aria-label="Search registry" autocomplete="off" />
+        </div>
+        <div class="header-spacer" aria-hidden="true"></div>
+        <div class="header-user-block" id="header-user-line">—</div>
+        <div class="header-actions">
+          <div class="theme-toggle" id="themeToggle" role="button" tabindex="0" aria-label="Toggle theme">
+            <span class="toggle-icon">🌙</span>
+            <span class="toggle-label">Dark</span>
+          </div>
+          <button type="button" class="icon-btn bell-btn" aria-label="Notifications">
+            <i data-lucide="bell"></i>
+            <span class="badge" id="notif-badge">0</span>
+          </button>
+          <button type="button" class="avatar avatar-btn" id="header-account-btn" aria-label="Account menu">
+            <span id="header-avatar" aria-hidden="true">H</span>
+          </button>
+          <div id="header-account-menu" class="header-account-menu" aria-hidden="true">
+            <button type="button" onclick="handleLogout()"><i data-lucide="log-out"></i> Log out</button>
+          </div>
+        </div>
+      </header>
+      <div id="sutra-strip" class="sutra-strip">
+        <span>હે હરિ ! બસ એક, તું રાજી થા</span>
+      </div>
+      <main id="main-pages" class="main-pages">
+        <div id="page-dashboard" class="page"><?!= include('DashboardPage') ?></div>
+        <div id="page-devotees" class="page"><?!= include('DevoteesPage') ?></div>
+        <div id="page-sabha" class="page"><?!= include('SabhaPage') ?></div>
+        <div id="page-attendance" class="page"><?!= include('AttendancePage') ?></div>
+        <div id="page-followup" class="page"><?!= include('FollowUpPage') ?></div>
+        <div id="page-birthday" class="page"><?!= include('BirthdayPage') ?></div>
+        <div id="page-events" class="page"><?!= include('EventsPage') ?></div>
+        <div id="page-seva" class="page"><?!= include('SevaPage') ?></div>
+        <div id="page-reports" class="page"><?!= include('ReportsPage') ?></div>
+        <div id="page-settings" class="page"><?!= include('SettingsPage') ?></div>
+      </main>
+    </div>
+    <nav class="dock-nav" id="dock-nav" aria-label="Quick navigation">
+      <button type="button" class="dock-item" data-page="dashboard" onclick="navTo('dashboard')"><i data-lucide="layout-dashboard"></i><span>Home</span></button>
+      <button type="button" class="dock-item" data-page="devotees" onclick="navTo('devotees')"><i data-lucide="users"></i><span>People</span></button>
+      <button type="button" class="dock-item" data-page="sabha" onclick="navTo('sabha')"><i data-lucide="book-open"></i><span>Sabha</span></button>
+      <button type="button" class="dock-item" data-page="attendance" onclick="navTo('attendance')"><i data-lucide="clipboard-check"></i><span>Mark</span></button>
+      <button type="button" class="dock-item" data-page="followup" onclick="navTo('followup')"><i data-lucide="phone-forwarded"></i><span>Care</span></button>
+    </nav>
+  </div>
+  <div id="game-loader" class="game-loader-overlay" aria-hidden="true">
+    <div class="game-loader-card" role="status" aria-live="polite">
+      <div class="game-loader-title">Loading...</div>
+      <div id="game-loader-text" class="game-loader-text">હે હરિ ! બસ એક, તું રાજી થા</div>
+      <div class="game-loader-track">
+        <div id="game-loader-bar" class="game-loader-bar"></div>
+      </div>
+      <div class="game-loader-meta">
+        <span id="game-loader-pct">0%</span>
+        <span id="game-loader-score">Bhajan x0</span>
+      </div>
+      <button type="button" id="game-loader-boost" class="game-loader-boost">Tap to do Bhajan</button>
+    </div>
+  </div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <div id="modal-backdrop" class="modal-backdrop" onclick="closeModal()" aria-hidden="true"></div>
+  <div id="sweet-alert-overlay" class="sweet-alert-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="sweet-alert">
+      <h3 class="sweet-alert-title" id="sweet-alert-title">Notice</h3>
+      <p class="sweet-alert-text" id="sweet-alert-text"></p>
+      <button type="button" class="btn-primary" onclick="closeSweetAlert()">OK</button>
+    </div>
+  </div>
+  <?!= include('JavaScript') ?>
+</body>
+</html>

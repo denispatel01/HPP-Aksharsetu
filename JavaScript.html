@@ -1,0 +1,1189 @@
+<script>
+  (function () {
+    var currentUser = null;
+    var dashboardCharts = { attendance: null, growth: null, status: null, gender: null, age: null, bdayTrend: null };
+    var navCollapsed = false;
+    var _globalLoadCount = 0;
+    var _loaderTick = null;
+    var _loaderProgress = 0;
+    var _loaderBoost = 1;
+    var _loaderScore = 0;
+    var _dashboardRetryArmed = true;
+    var _dashboardLoadSeq = 0;
+    var _loaderEventSeq = 0;
+    var _bootLoadingActive = false;
+    var _bootLoaderStartedAt = 0;
+    var _dashboardLastData = null;
+    var _dashboardLastLoadedAt = 0;
+    var DASHBOARD_FRESH_MS = 30 * 60 * 1000;
+    var BOOT_CACHE_KEY = 'hpp_bootstrap_cache_v1';
+    function _debugLog(label, data) {}
+    function _sec(ms) {
+      return Number(((Number(ms) || 0) / 1000).toFixed(2));
+    }
+    function _readBootCache() {
+      try {
+        var raw = localStorage.getItem(BOOT_CACHE_KEY);
+        if (!raw) return null;
+        var parsed = JSON.parse(raw);
+        if (!parsed || !parsed.user || !parsed.dashboard) return null;
+        var total = Number((parsed.dashboard && parsed.dashboard.totalVisible) || 0);
+        if (!isFinite(total) || total <= 0) return null;
+        var ageMs = Date.now() - Number(parsed.ts || 0);
+        if (ageMs > DASHBOARD_FRESH_MS) return null;
+        return parsed;
+      } catch (e) {
+        return null;
+      }
+    }
+    function _writeBootCache(user, dashboard) {
+      try {
+        var total = Number((dashboard && dashboard.totalVisible) || 0);
+        if (!isFinite(total) || total <= 0) return;
+        localStorage.setItem(
+          BOOT_CACHE_KEY,
+          JSON.stringify({
+            ts: Date.now(),
+            user: user,
+            dashboard: dashboard,
+          })
+        );
+      } catch (e) {}
+    }
+    function _clearBootCache() {
+      try { localStorage.removeItem(BOOT_CACHE_KEY); } catch (e) {}
+    }
+    function _syncBootCacheIfStale(bootCache) {
+      try {
+        if (!bootCache || !bootCache.dashboard) return;
+        var localStamp = String(bootCache.dashboard.cacheStamp || '');
+        if (!localStamp) return;
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success || !res.data) return;
+            var serverStamp = String(res.data.cacheStamp || '');
+            if (!serverStamp) return;
+            if (serverStamp !== localStamp) {
+              _debugLog('dashboard:source', { source: 'stale-boot-refresh' });
+              window.loadDashboard({ forceRefresh: true });
+            }
+          })
+          .withFailureHandler(function () {})
+          .getDevoteesCacheStamp();
+      } catch (e) {}
+    }
+    function _refreshDashboardInBackground() {
+      try {
+        var startedAt = Date.now();
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success || !res.data) return;
+            var d = res.data || {};
+            applyDashboardData(d);
+            _rememberDashboardData(d);
+            _writeBootCache((window.HPP && window.HPP.user) || {}, d);
+            _debugLog('dashboard:source', { source: 'background-sync' });
+            _debugLog('dashboard:fast:timing', { roundTripMs: Date.now() - startedAt });
+          })
+          .withFailureHandler(function () {})
+          .getDashboardSnapshotFast();
+      } catch (e) {}
+    }
+    function _rememberDashboardData(d) {
+      _dashboardLastData = d || null;
+      _dashboardLastLoadedAt = Date.now();
+    }
+    function _isDashboardDataFresh() {
+      if (!_dashboardLastData || !_dashboardLastLoadedAt) return false;
+      return Date.now() - _dashboardLastLoadedAt <= DASHBOARD_FRESH_MS;
+    }
+    var THEME_KEY = 'appTheme';
+    function $(id) {
+      return document.getElementById(id);
+    }
+    function paintIcons() {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+      }
+    }
+    function updateLayoutMode() {
+      var app = $('app');
+      if (!app) return;
+      var w = window.innerWidth || document.documentElement.clientWidth;
+      app.classList.remove('is-mobile', 'is-tablet', 'is-desktop');
+      if (w < 768) {
+        app.classList.add('is-mobile');
+      } else if (w < 1024) {
+        app.classList.add('is-tablet');
+      } else {
+        app.classList.add('is-desktop');
+      }
+      if (app.classList.contains('is-desktop')) {
+        $('sidebar').classList.remove('open');
+        app.classList.remove('nav-expanded');
+        $('nav-overlay').classList.remove('visible');
+        app.classList.toggle('nav-collapsed', navCollapsed);
+      } else {
+        app.classList.remove('nav-collapsed');
+      }
+      paintIcons();
+    }
+    function showToast(message, type) {
+      var container = $('toast-container');
+      if (!container) return;
+      var el = document.createElement('div');
+      el.className = 'toast';
+      if (type === 'error') el.classList.add('error');
+      else if (type === 'success') el.classList.add('success');
+      else if (type === 'info') el.classList.add('info');
+      var text = document.createElement('div');
+      text.textContent = message;
+      el.appendChild(text);
+      var bar = document.createElement('div');
+      bar.className = 'toast-progress';
+      el.appendChild(bar);
+      container.appendChild(el);
+      setTimeout(function () {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, 4200);
+    }
+    window.showToast = showToast;
+    function reportClientError(functionName, message, err, context) {
+      try {
+        var payload = {
+          functionName: functionName || 'client',
+          message: String(message || (err && err.message) || 'Client error'),
+          stack: err && err.stack ? String(err.stack) : '',
+          context: context || {},
+          page: (window.HPP && window.HPP.currentPage) || '',
+        };
+        google.script.run.withSuccessHandler(function () {}).withFailureHandler(function () {}).logClientError(payload);
+      } catch (ignore) {}
+    }
+    window.reportClientError = reportClientError;
+    function _loaderEls() {
+      return {
+        overlay: $('game-loader'),
+        text: $('game-loader-text'),
+        bar: $('game-loader-bar'),
+        pct: $('game-loader-pct'),
+        score: $('game-loader-score'),
+      };
+    }
+    function _drawLoader() {
+      var els = _loaderEls();
+      if (!els.bar) return;
+      var p = Math.max(0, Math.min(100, _loaderProgress));
+      els.bar.style.width = p + '%';
+      if (els.pct) els.pct.textContent = Math.round(p) + '%';
+      if (els.score) els.score.textContent = 'Bhajan x' + _loaderScore;
+    }
+    function _startLoader(text) {
+      var els = _loaderEls();
+      if (!els.overlay) return;
+      if (els.text) els.text.textContent = 'હે હરિ ! બસ એક, તું રાજી થા';
+      els.overlay.classList.add('visible');
+      els.overlay.setAttribute('aria-hidden', 'false');
+      if (_loaderTick) clearInterval(_loaderTick);
+      _loaderProgress = Math.max(_loaderProgress, 6);
+      _loaderBoost = 1;
+      _drawLoader();
+      _loaderTick = setInterval(function () {
+        if (_loaderProgress >= 94) return;
+        var step = 0.7 * _loaderBoost + Math.random() * 0.8;
+        _loaderProgress += step;
+        _loaderBoost = Math.max(1, _loaderBoost * 0.95);
+        _drawLoader();
+      }, 120);
+    }
+    function _finishLoader() {
+      var els = _loaderEls();
+      if (_loaderTick) {
+        clearInterval(_loaderTick);
+        _loaderTick = null;
+      }
+      _loaderProgress = 100;
+      _drawLoader();
+      setTimeout(function () {
+        if (els.overlay) {
+          els.overlay.classList.remove('visible');
+          els.overlay.setAttribute('aria-hidden', 'true');
+        }
+        _loaderProgress = 0;
+        _loaderBoost = 1;
+        _loaderScore = 0;
+        _drawLoader();
+      }, 220);
+    }
+    window.loaderBoost = function () {
+      if (_globalLoadCount <= 0) return;
+      _loaderScore += 1;
+      _loaderBoost = Math.min(4, _loaderBoost + 0.65);
+      _loaderProgress = Math.min(98, _loaderProgress + 2.2);
+      var els = _loaderEls();
+      if (els.text) {
+        var jap = Math.min(6, _loaderScore + 2);
+        var chant = [];
+        for (var i = 0; i < jap; i++) chant.push('Swaminarayan');
+        els.text.textContent = chant.join(' ');
+      }
+      _drawLoader();
+    };
+    function setGlobalLoading(on, text, source) {
+      var src = source || 'unknown';
+      if (on) {
+        _globalLoadCount++;
+        _loaderEventSeq++;
+        _debugLog('loader:on', {
+          eventId: _loaderEventSeq,
+          source: src,
+          text: text || '',
+          count: _globalLoadCount,
+        });
+        _startLoader(text);
+      } else {
+        _globalLoadCount = Math.max(0, _globalLoadCount - 1);
+        _loaderEventSeq++;
+        _debugLog('loader:off', {
+          eventId: _loaderEventSeq,
+          source: src,
+          text: text || '',
+          count: _globalLoadCount,
+        });
+        if (_globalLoadCount === 0) {
+          _debugLog('loader:finish', { source: src });
+          _finishLoader();
+        }
+      }
+    }
+    window.setGlobalLoading = setGlobalLoading;
+    function setTopProgress(v) {
+      _loaderProgress = Math.max(0, Math.min(100, Number(v) || 0));
+      _drawLoader();
+    }
+    function startTopProgress() { setGlobalLoading(true, 'Loading...', 'startTopProgress'); }
+    function doneTopProgress() { setGlobalLoading(false, '', 'doneTopProgress'); }
+    window.startTopProgress = startTopProgress;
+    window.doneTopProgress = doneTopProgress;
+    window.setTopProgress = setTopProgress;
+    function applyTheme(theme) {
+      var t = theme === 'light' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+      try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+      syncThemeToggle();
+    }
+    function currentTheme() {
+      var t = document.documentElement.getAttribute('data-theme');
+      return t === 'light' ? 'light' : 'dark';
+    }
+    function syncThemeToggle() {
+      var btn = $('themeToggle');
+      if (!btn) return;
+      var isLight = currentTheme() === 'light';
+      var icon = btn.querySelector('.toggle-icon');
+      var lbl = btn.querySelector('.toggle-label');
+      if (icon) icon.textContent = isLight ? '☀️' : '🌙';
+      if (lbl) lbl.textContent = isLight ? 'Light' : 'Dark';
+    }
+    window.toggleTheme = function () {
+      applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
+    };
+    function showSweetAlert(title, text) {
+      var overlay = $('sweet-alert-overlay');
+      if (!overlay) return;
+      $('sweet-alert-title').textContent = title || 'Notice';
+      $('sweet-alert-text').textContent = text || '';
+      overlay.classList.add('visible');
+      overlay.setAttribute('aria-hidden', 'false');
+      paintIcons();
+    }
+    window.closeSweetAlert = function () {
+      var overlay = $('sweet-alert-overlay');
+      if (!overlay) return;
+      overlay.classList.remove('visible');
+      overlay.setAttribute('aria-hidden', 'true');
+    };
+    window.closeModal = function () {
+      var b = $('modal-backdrop');
+      if (b) b.classList.remove('visible');
+    };
+    function formatHeaderUserLine(user) {
+      var name = (user && user.name) || '—';
+      var role = String((user && user.role) || '').trim().toLowerCase();
+      var pretty = 'User';
+      if (role === 'admin') {
+        pretty = (user && (user.isSuperAdmin || user.superAdmin)) ? 'Super Admin' : 'Admin';
+      } else if (role === 'sub-leader') {
+        pretty = 'Sub-leader';
+      } else if (role) {
+        pretty = role.charAt(0).toUpperCase() + role.slice(1);
+      }
+      return name + ' · ' + pretty;
+    }
+    function setShellUser(user) {
+      var name = (user && user.name) || '—';
+      var email = (user && user.email) || '—';
+      var initials = name && name !== '—' ? name.trim().charAt(0).toUpperCase() : 'H';
+      $('sidebar-user-name').textContent = name;
+      $('sidebar-user-email').textContent = email;
+      $('header-avatar').textContent = initials;
+      var headerLine = $('header-user-line');
+      if (headerLine) headerLine.textContent = formatHeaderUserLine(user);
+    }
+    function closeHeaderAccountMenu() {
+      var menu = $('header-account-menu');
+      if (!menu) return;
+      menu.classList.remove('open');
+      menu.setAttribute('aria-hidden', 'true');
+    }
+    function toggleHeaderAccountMenu() {
+      var menu = $('header-account-menu');
+      if (!menu) return;
+      var open = !menu.classList.contains('open');
+      if (open) {
+        menu.classList.add('open');
+        menu.setAttribute('aria-hidden', 'false');
+      } else {
+        closeHeaderAccountMenu();
+      }
+      paintIcons();
+    }
+    function applyHeaderSearch(query) {
+      var q = String(query || '').trim();
+      if (!q) {
+        if (window.HPP && window.HPP.currentPage === 'devotees') {
+          var ds0 = $('dev-search');
+          if (ds0) ds0.value = '';
+          if (typeof window.applyFilters === 'function') window.applyFilters();
+        }
+        return;
+      }
+      if (window.HPP && window.HPP.currentPage !== 'devotees') {
+        navTo('devotees');
+      }
+      var ds = $('dev-search');
+      if (!ds) return;
+      ds.value = q;
+      if (typeof window.applyFilters === 'function') window.applyFilters();
+      else if (typeof window.loadDevotees === 'function') window.loadDevotees();
+    }
+    function showLogin() {
+      $('login-page').style.display = '';
+      $('app').style.display = 'none';
+    }
+    function showApp(user, opts) {
+      opts = opts || {};
+      currentUser = user;
+      window.HPP = window.HPP || {};
+      window.HPP.user = user;
+      $('login-page').style.display = 'none';
+      $('app').style.display = '';
+      updateLayoutMode();
+      setShellUser(user);
+      if (opts.skipInitialDashboardLoad) {
+        window.HPP.currentPage = 'dashboard';
+        var pages = document.querySelectorAll('.page');
+        for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+        var target = $('page-dashboard');
+        if (target) target.classList.add('active');
+        var items = document.querySelectorAll('.nav-item');
+        for (var j = 0; j < items.length; j++) {
+          items[j].classList.toggle('active', items[j].getAttribute('data-page') === 'dashboard');
+        }
+        var docks = document.querySelectorAll('.dock-item');
+        for (var k = 0; k < docks.length; k++) {
+          docks[k].classList.toggle('active', docks[k].getAttribute('data-page') === 'dashboard');
+        }
+        var ht = $('header-page-title');
+        var hs = $('header-page-sub');
+        if (ht) ht.textContent = 'Dashboard';
+        if (hs) hs.textContent = 'Overview';
+      } else {
+        navTo('dashboard');
+      }
+      paintIcons();
+    }
+    window.openSidebar = function () {
+      var app = $('app');
+      $('sidebar').classList.add('open');
+      if (app && app.classList.contains('is-tablet')) {
+        app.classList.add('nav-expanded');
+      }
+      $('nav-overlay').classList.add('visible');
+    };
+    window.closeSidebar = function () {
+      var app = $('app');
+      $('sidebar').classList.remove('open');
+      if (app) {
+        app.classList.remove('nav-expanded');
+      }
+      $('nav-overlay').classList.remove('visible');
+    };
+    window.toggleSidebar = function () {
+      var app = $('app');
+      if (!app) return;
+      if (app.classList.contains('is-mobile')) {
+        if ($('sidebar').classList.contains('open')) window.closeSidebar();
+        else window.openSidebar();
+        return;
+      }
+      if (app.classList.contains('is-tablet')) {
+        if (app.classList.contains('nav-expanded')) window.closeSidebar();
+        else window.openSidebar();
+        return;
+      }
+      navCollapsed = !navCollapsed;
+      app.classList.toggle('nav-collapsed', navCollapsed);
+    };
+    function destroyDashboardCharts() {
+      var keys = Object.keys(dashboardCharts);
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        if (dashboardCharts[k]) {
+          dashboardCharts[k].destroy();
+          dashboardCharts[k] = null;
+        }
+      }
+    }
+    function chartDefaults() {
+      if (typeof Chart === 'undefined') return;
+      Chart.defaults.color = '#9a9590';
+      Chart.defaults.borderColor = '#252525';
+      Chart.defaults.font.family = "'DM Sans', sans-serif";
+    }
+    function renderDashboardCharts(data) {
+      if (typeof Chart === 'undefined') return;
+      chartDefaults();
+      var gold = '#c9a96e';
+      var goldSoft = 'rgba(201, 169, 110, 0.12)';
+      var weeks = ['W1', 'W2', 'W3', 'W4'];
+      var att = (data && data.attendanceLast4Weeks) || [0, 0, 0, 0];
+      var gLabels = (data && data.devoteeGrowthMonths) || ['M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
+      var gCounts = (data && data.devoteeGrowthCounts) || [0, 0, 0, 0, 0, 0];
+      var statusLabels = (data && data.statusLabels) || ['Active', 'Inactive', 'Relocated', 'Deceased'];
+      var statusCounts = (data && data.statusCounts) || [0, 0, 0, 0];
+      var genderLabels = (data && data.genderLabels) || ['Male', 'Female', 'Other'];
+      var genderCounts = (data && data.genderCounts) || [0, 0, 0];
+      var ageLabels = (data && data.ageBandLabels) || ['Kids', 'Youth', 'Adult', 'Senior', 'Unknown'];
+      var ageCounts = (data && data.ageBandCounts) || [0, 0, 0, 0, 0];
+      var bTrendLabels = (data && data.birthdayTrendLabels) || ['W1', 'W2', 'W3', 'W4', 'W5'];
+      var bTrendCounts = (data && data.birthdayTrendCounts) || [0, 0, 0, 0, 0];
+      var canvasAtt = $('dash-chart-attendance');
+      var canvasGrowth = $('dash-chart-growth');
+      var canvasStatus = $('dash-chart-status');
+      var canvasGender = $('dash-chart-gender');
+      var canvasAge = $('dash-chart-age');
+      var canvasBTrend = $('dash-chart-bday-trend');
+      if (!canvasAtt || !canvasGrowth) return;
+      destroyDashboardCharts();
+      dashboardCharts.attendance = new Chart(canvasAtt.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: weeks,
+          datasets: [
+            {
+              label: 'Attendance %',
+              data: att,
+              backgroundColor: goldSoft,
+              borderColor: gold,
+              borderWidth: 1,
+              borderRadius: 6,
+              maxBarThickness: 44,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, position: 'top', labels: { boxWidth: 10, color: '#9a9590' } },
+          },
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              ticks: { color: '#5c5955', font: { size: 11 } },
+              grid: { color: 'rgba(37,37,37,0.9)' },
+            },
+            x: {
+              ticks: { color: '#5c5955', font: { size: 11 } },
+              grid: { display: false },
+            },
+          },
+        },
+      });
+      dashboardCharts.growth = new Chart(canvasGrowth.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: gLabels,
+          datasets: [
+            {
+              label: 'Devotees',
+              data: gCounts,
+              borderColor: gold,
+              backgroundColor: 'rgba(201, 169, 110, 0.06)',
+              tension: 0.35,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: gold,
+              pointBorderColor: '#111',
+              pointBorderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, position: 'top', labels: { boxWidth: 10, color: '#9a9590' } },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#5c5955', font: { size: 11 } },
+              grid: { color: 'rgba(37,37,37,0.9)' },
+            },
+            x: {
+              ticks: { color: '#5c5955', font: { size: 11 } },
+              grid: { display: false },
+            },
+          },
+        },
+      });
+      if (canvasStatus) {
+        dashboardCharts.status = new Chart(canvasStatus.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: statusLabels,
+            datasets: [{ data: statusCounts, backgroundColor: ['#4e9e7a', '#b8860b', '#4d7aff', '#c46a6a'] }],
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
+        });
+      }
+      if (canvasGender) {
+        dashboardCharts.gender = new Chart(canvasGender.getContext('2d'), {
+          type: 'pie',
+          data: {
+            labels: genderLabels,
+            datasets: [{ data: genderCounts, backgroundColor: ['#5fa8ff', '#ff8ab2', '#f6c26b'] }],
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
+        });
+      }
+      if (canvasAge) {
+        dashboardCharts.age = new Chart(canvasAge.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ageLabels,
+            datasets: [{ label: 'Count', data: ageCounts, backgroundColor: 'rgba(201,169,110,0.35)', borderColor: gold }],
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+        });
+      }
+      if (canvasBTrend) {
+        dashboardCharts.bdayTrend = new Chart(canvasBTrend.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: bTrendLabels,
+            datasets: [{ label: 'Birthdays', data: bTrendCounts, borderColor: '#ff9a4d', backgroundColor: 'rgba(255,154,77,0.12)', fill: true, tension: 0.35 }],
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+        });
+      }
+    }
+    function setKpiLoading() {
+      var ids = [
+        'dash-kpi-total',
+        'dash-kpi-active',
+        'dash-kpi-families',
+        'dash-kpi-followups',
+        'dash-kpi-birthdays',
+        'dash-kpi-birthdays-30',
+        'dash-kpi-sabha',
+        'dash-kpi-male',
+        'dash-kpi-female',
+        'dash-kpi-other',
+        'dash-kpi-donation',
+        'dash-kpi-wa',
+        'dash-kpi-karyakarta',
+      ];
+      for (var i = 0; i < ids.length; i++) {
+        var el = $(ids[i]);
+        if (!el) continue;
+        el.textContent = '0';
+      }
+    }
+    function applyDashboardData(d) {
+      function setVal(id, v) {
+        var el = $(id);
+        if (!el) return;
+        el.textContent = String(v == null ? '0' : v);
+      }
+      var activeEl = $('dash-kpi-active');
+      var sabhaEl = $('dash-kpi-sabha');
+      var fuEl = $('dash-kpi-followups');
+      var bdayEl = $('dash-kpi-birthdays');
+      var nActive = Number((d && d.activeDevotees) || 0);
+      var nFu = Number((d && d.pendingFollowups) || 0);
+      var bdays = (d && d.todayBirthdays) || [];
+      var nBday = bdays.length;
+      var sp = d && d.weekSabhaPercent;
+      var sabhaText =
+        sp === null || sp === undefined || sp === '' ? '—' : String(sp) + '%';
+      if (activeEl) {
+        activeEl.textContent = '';
+        activeEl.appendChild(document.createTextNode(String(nActive)));
+      }
+      if (fuEl) {
+        fuEl.textContent = '';
+        fuEl.appendChild(document.createTextNode(String(nFu)));
+      }
+      if (bdayEl) {
+        bdayEl.textContent = '';
+        bdayEl.appendChild(document.createTextNode(String(nBday)));
+      }
+      if (sabhaEl) {
+        sabhaEl.textContent = '';
+        sabhaEl.appendChild(document.createTextNode(sabhaText));
+      }
+      setVal('dash-kpi-total', Number((d && d.totalVisible) || 0));
+      setVal('dash-kpi-families', Number((d && d.familiesCount) || 0));
+      setVal('dash-kpi-birthdays-30', (d && d.upcomingBirthdays30 && d.upcomingBirthdays30.length) || 0);
+      setVal('dash-kpi-male', Number((d && d.maleCount) || 0));
+      setVal('dash-kpi-female', Number((d && d.femaleCount) || 0));
+      setVal('dash-kpi-other', Number((d && d.otherCount) || 0));
+      setVal('dash-kpi-donation', Number((d && d.donationEnabledCount) || 0));
+      setVal('dash-kpi-wa', Number((d && d.whatsAppOptedInCount) || 0));
+      setVal('dash-kpi-karyakarta', Number((d && d.karyakartaCount) || 0));
+      var qText = $('dash-quote-text');
+      var qAuth = $('dash-quote-author');
+      if (qText) qText.textContent = (d && d.motivationQuote && d.motivationQuote.text) || 'હે હરિ ! બસ એક, તું રાજી થા.';
+      if (qAuth) qAuth.textContent = '— ' + (((d && d.motivationQuote && d.motivationQuote.author) || 'Satsang'));
+      var bToday = $('dash-birthdays-today');
+      var bUpcoming = $('dash-birthdays-upcoming');
+      if (bToday) {
+        var today = (d && d.todayBirthdays) || [];
+        if (!today.length) bToday.textContent = 'No birthdays today.';
+        else {
+          var tHtml = '<ul class="dash-list-ul">';
+          for (var i = 0; i < today.length; i++) {
+            tHtml +=
+              '<li class="dash-bday-item-today"><div class="dash-bday-line">' +
+              today[i].name +
+              (today[i].turns ? ' <span class="dash-bday-turns">(Turns ' + today[i].turns + ')</span>' : '') +
+              '</div><div class="dash-bday-sub">Karyakarta: ' +
+              (today[i].karyakartaName || '—') +
+              ' | Devotee Mobile: ' +
+              (today[i].mobile || '—') +
+              '</div>' +
+              (today[i].waLink
+                ? '<a class="dash-wa-btn" href="' + today[i].waLink + '" target="_blank" rel="noopener">WhatsApp</a>'
+                : '') +
+              '</li>';
+          }
+          tHtml += '</ul>';
+          bToday.innerHTML = tHtml;
+        }
+      }
+      if (bUpcoming) {
+        var up = (d && d.upcomingBirthdays30) || [];
+        if (!up.length) bUpcoming.textContent = 'No upcoming birthdays in next 30 days.';
+        else {
+          var uHtml = '<ul class="dash-list-ul">';
+          for (var j = 0; j < up.length && j < 18; j++) {
+            uHtml +=
+              '<li class="dash-bday-item-upcoming"><div class="dash-bday-line">' +
+              up[j].name +
+              ' · ' +
+              up[j].dateLabel +
+              ' (+' +
+              up[j].daysAway +
+              'd)</div><div class="dash-bday-sub">Karyakarta: ' +
+              (up[j].karyakartaName || '—') +
+              ' | Devotee Mobile: ' +
+              (up[j].mobile || '—') +
+              '</div>' +
+              (up[j].waLink
+                ? '<a class="dash-wa-btn" href="' + up[j].waLink + '" target="_blank" rel="noopener">WhatsApp</a>'
+                : '') +
+              '</li>';
+          }
+          uHtml += '</ul>';
+          bUpcoming.innerHTML = uHtml;
+        }
+      }
+      var ky = $('dash-karyakarta-yuvak');
+      if (ky) {
+        var rows = (d && d.karyakartaYuvakCounts) || [];
+        if (!rows.length) ky.textContent = 'No karyakarta mapping found.';
+        else {
+          var kHtml = '<ul class="dash-list-ul">';
+          for (var k = 0; k < rows.length && k < 30; k++) {
+            kHtml +=
+              '<li class="dash-kary-item"><div class="dash-bday-line">' +
+              (rows[k].name || '—') +
+              '</div><div class="dash-bday-sub">Yuvak: ' +
+              Number(rows[k].yuvakCount || 0) +
+              ' | Total under karyakarta: ' +
+              Number(rows[k].totalCount || 0) +
+              '</div></li>';
+          }
+          kHtml += '</ul>';
+          ky.innerHTML = kHtml;
+        }
+      }
+      renderDashboardCharts(d || {});
+      paintIcons();
+    }
+    function _loadDashboardHeavy(seqToken) {
+      var requestStartedAt = Date.now();
+      _debugLog('dashboard:heavy:start', { seqToken: seqToken });
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (seqToken !== _dashboardLoadSeq) return;
+          var roundTripMs = Date.now() - requestStartedAt;
+          _debugLog('dashboard:heavy:success', { seqToken: seqToken, roundTripMs: roundTripMs });
+          if (res && res.success && res.data) {
+            var d = res.data || {};
+            if (d.perf) _debugLog('dashboard:fast:timing', { roundTripMs: roundTripMs });
+            applyDashboardData(d);
+            _dashboardRetryArmed = false;
+          } else {
+            applyDashboardData({});
+            var err = res && res.error ? res.error : 'Could not load dashboard.';
+            reportClientError('loadDashboard.successHandler', err, null, res || {});
+            showToast(err, 'error');
+            _dashboardRetryArmed = false;
+          }
+        })
+        .withFailureHandler(function (err) {
+          if (seqToken !== _dashboardLoadSeq) return;
+          _debugLog('dashboard:heavy:failure', { seqToken: seqToken, message: (err && err.message) || String(err) });
+          applyDashboardData({});
+          reportClientError('loadDashboard.failureHandler', (err && err.message) || String(err), err, {});
+          showToast((err && err.message) || String(err), 'error');
+          _dashboardRetryArmed = false;
+        })
+        .getDashboardSummary();
+    }
+    window.loadDashboard = function (opts) {
+      opts = opts || {};
+      var forceRefresh = !!opts.forceRefresh;
+      var backgroundSync = !!opts.backgroundSync;
+      var silent = !!opts.silent || backgroundSync;
+      if (!forceRefresh && _isDashboardDataFresh()) {
+        applyDashboardData(_dashboardLastData || {});
+        _debugLog('dashboard:source', { source: 'memory' });
+        if (!backgroundSync) return;
+        forceRefresh = true;
+      }
+      _dashboardLoadSeq += 1;
+      var seqToken = _dashboardLoadSeq;
+      var fastRequestStartedAt = Date.now();
+      _debugLog('dashboard:load:start', { seqToken: seqToken, page: window.HPP && window.HPP.currentPage });
+      var loaderVisible = false;
+      var skipTimerLoader = _bootLoadingActive;
+      var loaderTimer = null;
+      if (!silent) {
+        loaderTimer = setTimeout(function () {
+          if (seqToken !== _dashboardLoadSeq) return;
+          if (skipTimerLoader) return;
+          loaderVisible = true;
+          _debugLog('dashboard:loader:timer-fired', { seqToken: seqToken });
+          setGlobalLoading(true, 'Loading dashboard...', 'loadDashboard.timer');
+        }, 420);
+        setKpiLoading();
+      }
+      google.script.run
+        .withSuccessHandler(function (res) {
+          if (seqToken !== _dashboardLoadSeq) return;
+          if (loaderTimer) clearTimeout(loaderTimer);
+          var fastRoundTripMs = Date.now() - fastRequestStartedAt;
+          _debugLog('dashboard:fast:success', { seqToken: seqToken, hasData: !!(res && res.success && res.data), loaderVisible: loaderVisible });
+          _debugLog('dashboard:fast:timing', {
+            seqToken: seqToken,
+            roundTripMs: fastRoundTripMs,
+            roundTripSec: _sec(fastRoundTripMs),
+          });
+          if (loaderVisible) setGlobalLoading(false, '', 'loadDashboard.fast.success');
+          if (_bootLoadingActive) {
+            var bootVisibleMs = Date.now() - (_bootLoaderStartedAt || Date.now());
+            setGlobalLoading(false, '', 'loadDashboard.fast.success.boot');
+            _debugLog('boot:timing', {
+              loaderVisibleMs: bootVisibleMs,
+              loaderVisibleSec: _sec(bootVisibleMs),
+            });
+            _bootLoadingActive = false;
+            _bootLoaderStartedAt = 0;
+          }
+          if (res && res.success && res.data) {
+            var fastData = res.data || {};
+            applyDashboardData(fastData);
+            _rememberDashboardData(fastData);
+            _debugLog('dashboard:source', { source: 'server' });
+            if (fastData.perf) {
+              _debugLog('dashboard:server:split', {
+                readDevoteesMs: Number(fastData.perf.readDevoteesMs || 0),
+                processDevoteesMs: Number(fastData.perf.processDevoteesMs || 0),
+                serverTotalMs: Number(fastData.perf.totalMs || 0),
+                networkBrowserMs: Math.max(0, fastRoundTripMs - Number(fastData.perf.totalMs || 0)),
+              });
+            }
+            return;
+          }
+          applyDashboardData({});
+        })
+        .withFailureHandler(function (err) {
+          if (seqToken !== _dashboardLoadSeq) return;
+          if (loaderTimer) clearTimeout(loaderTimer);
+          var fastFailMs = Date.now() - fastRequestStartedAt;
+          _debugLog('dashboard:fast:failure', { seqToken: seqToken, message: (err && err.message) || String(err), loaderVisible: loaderVisible });
+          _debugLog('dashboard:fast:timing', {
+            seqToken: seqToken,
+            roundTripMs: fastFailMs,
+            roundTripSec: _sec(fastFailMs),
+          });
+          if (loaderVisible) setGlobalLoading(false, '', 'loadDashboard.fast.failure');
+          if (_bootLoadingActive) {
+            var bootVisibleFailMs = Date.now() - (_bootLoaderStartedAt || Date.now());
+            setGlobalLoading(false, '', 'loadDashboard.fast.failure.boot');
+            _debugLog('boot:timing', {
+              loaderVisibleMs: bootVisibleFailMs,
+              loaderVisibleSec: _sec(bootVisibleFailMs),
+            });
+            _bootLoadingActive = false;
+            _bootLoaderStartedAt = 0;
+          }
+          applyDashboardData({});
+          showToast((err && err.message) || String(err), 'error');
+        })
+        .getDashboardSnapshotFast();
+    };
+    function getDevoteeFilterSnapshot() {
+      function gv(id, def) {
+        var el = $(id);
+        return el && 'value' in el ? String(el.value || '').trim() : (def || '');
+      }
+      return {
+        search: gv('dev-search', ''),
+        status: gv('dev-filter-status', ''),
+        mandal: gv('dev-filter-mandal', ''),
+        type: gv('dev-filter-type', ''),
+        gender: gv('dev-filter-gender', ''),
+        blood: gv('dev-filter-blood', ''),
+        age: gv('dev-filter-age', ''),
+      };
+    }
+    window.ensureErrorLogSheet = function () {
+      setGlobalLoading(true, 'Ensuring ErrorLogs sheet...', 'ensureErrorLogSheet');
+      google.script.run
+        .withSuccessHandler(function (res) {
+          setGlobalLoading(false, '', 'ensureErrorLogSheet.success');
+          if (res && res.success) {
+            showToast('ErrorLogs sheet is ready.', 'success');
+            if (window.HPP && window.HPP.currentPage === 'settings') window.loadDiagnostics();
+          } else {
+            showToast((res && res.error) || 'Could not ensure ErrorLogs sheet.', 'error');
+          }
+        })
+        .withFailureHandler(function (err) {
+          setGlobalLoading(false, '', 'ensureErrorLogSheet.failure');
+          showToast((err && err.message) || String(err), 'error');
+        })
+        .hppEnsureErrorLogSheet();
+    };
+    window.loadDiagnostics = function () {
+      var summaryEl = $('diag-summary');
+      var errorsEl = $('diag-errors');
+      var user = (window.HPP && window.HPP.user) || {};
+      var page = (window.HPP && window.HPP.currentPage) || '';
+      var filters = getDevoteeFilterSnapshot();
+      if (summaryEl) {
+        summaryEl.textContent =
+          'Loading diagnostics...';
+      }
+      if (errorsEl) errorsEl.textContent = '';
+      google.script.run
+        .withSuccessHandler(function (res) {
+          var rows = (res && res.success && res.data) ? res.data : [];
+          if (summaryEl) {
+            summaryEl.textContent =
+              'User: ' +
+              (user.email || '—') +
+              ' | Role: ' +
+              (user.role || '—') +
+              ' | Page: ' +
+              page +
+              ' | Devotee Filters: ' +
+              JSON.stringify(filters);
+          }
+          if (errorsEl) {
+            if (!rows.length) {
+              errorsEl.textContent = 'No error logs found.';
+              return;
+            }
+            var lines = [];
+            for (var i = rows.length - 1; i >= 0; i--) {
+              var r = rows[i];
+              lines.push(
+                [
+                  '[' + String(r[1] || '') + ']',
+                  String(r[0] || ''),
+                  String(r[2] || ''),
+                  String(r[3] || ''),
+                  String(r[5] || ''),
+                ].join(' | ')
+              );
+            }
+            errorsEl.textContent = lines.join('\n');
+          }
+        })
+        .withFailureHandler(function (err) {
+          if (summaryEl) {
+            summaryEl.textContent = 'Failed to load diagnostics.';
+          }
+          if (errorsEl) {
+            errorsEl.textContent = (err && err.message) || String(err);
+          }
+          showToast((err && err.message) || String(err), 'error');
+        })
+        .getRecentErrorLogs(20);
+    };
+    var PAGE_META = {
+      dashboard: { title: 'Dashboard', sub: 'Overview' },
+      devotees: { title: 'Devotees', sub: 'Registry' },
+      sabha: { title: 'Sabha', sub: 'Programs' },
+      attendance: { title: 'Attendance', sub: 'Presence' },
+      followup: { title: 'Follow-ups', sub: 'Care queue' },
+      birthday: { title: 'Birthdays', sub: 'Celebrations' },
+      events: { title: 'Events', sub: 'Gatherings' },
+      seva: { title: 'Seva', sub: 'Offerings' },
+      reports: { title: 'Reports', sub: 'Intelligence' },
+      settings: { title: 'Settings', sub: 'Preferences' },
+    };
+    window.navTo = function (page) {
+      window.HPP = window.HPP || {};
+      window.HPP.currentPage = page;
+      if (page === 'dashboard') _dashboardRetryArmed = true;
+      var pages = document.querySelectorAll('.page');
+      for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+      var target = $('page-' + page);
+      if (target) target.classList.add('active');
+      var items = document.querySelectorAll('.nav-item');
+      for (var j = 0; j < items.length; j++) {
+        items[j].classList.toggle('active', items[j].getAttribute('data-page') === page);
+      }
+      var docks = document.querySelectorAll('.dock-item');
+      for (var k = 0; k < docks.length; k++) {
+        docks[k].classList.toggle('active', docks[k].getAttribute('data-page') === page);
+      }
+      var meta = PAGE_META[page] || { title: page, sub: '' };
+      var ht = $('header-page-title');
+      var hs = $('header-page-sub');
+      if (ht) ht.textContent = meta.title;
+      if (hs) hs.textContent = meta.sub;
+      var app = $('app');
+      if (app && (app.classList.contains('is-mobile') || app.classList.contains('is-tablet'))) {
+        window.closeSidebar();
+      }
+      closeHeaderAccountMenu();
+      paintIcons();
+      if (page === 'devotees' && typeof window.loadDevotees === 'function') {
+        window.loadDevotees({ backgroundSync: true });
+      }
+      if (page === 'dashboard' && typeof window.loadDashboard === 'function') {
+        window.loadDashboard({ backgroundSync: true });
+      }
+      if (page === 'settings' && typeof window.loadDiagnostics === 'function') {
+        window.loadDiagnostics();
+      }
+    };
+    window.handleGoogleSignIn = function () {
+      showToast('Signing in…', 'info');
+      setGlobalLoading(true, 'Signing in...', 'handleGoogleSignIn');
+      google.script.run
+        .withSuccessHandler(function (res) {
+          setGlobalLoading(false, '', 'handleGoogleSignIn.success');
+          if (res && res.success && res.data) {
+            showToast('Welcome, ' + (res.data.name || res.data.email), 'success');
+            showApp(res.data);
+          } else {
+            var msg = (res && res.error) ? res.error : 'Sign-in failed.';
+            showToast(msg, 'error');
+            showSweetAlert('Sign-in', msg);
+          }
+        })
+        .withFailureHandler(function (err) {
+          setGlobalLoading(false, '', 'handleGoogleSignIn.failure');
+          var msg = (err && err.message) ? err.message : String(err);
+          showToast(msg, 'error');
+          showSweetAlert('Sign-in', msg);
+        })
+        .loginUser('', '');
+    };
+    window.handleLogout = function () {
+      setGlobalLoading(true, 'Signing out...', 'handleLogout');
+      google.script.run
+        .withSuccessHandler(function () {
+          setGlobalLoading(false, '', 'handleLogout.success');
+          currentUser = null;
+          destroyDashboardCharts();
+          if (window.HPP) window.HPP.user = null;
+          navCollapsed = false;
+          _clearBootCache();
+          showToast('Signed out', 'success');
+          showLogin();
+        })
+        .withFailureHandler(function (err) {
+          setGlobalLoading(false, '', 'handleLogout.failure');
+          showToast((err && err.message) || String(err), 'error');
+        })
+        .logoutUser();
+    };
+    function hydrateSession(opts) {
+      opts = opts || {};
+      var silent = !!opts.silent;
+      _debugLog('session:hydrate:start', {});
+      _bootLoadingActive = !silent;
+      _bootLoaderStartedAt = _bootLoadingActive ? Date.now() : 0;
+      var sessionStartedAt = Date.now();
+      if (!silent) setGlobalLoading(true, 'Loading session...', 'hydrateSession');
+      google.script.run
+        .withSuccessHandler(function (res) {
+          var sessionMs = Date.now() - sessionStartedAt;
+          _debugLog('session:hydrate:success', { hasUser: !!(res && res.success && res.data && res.data.user) });
+          _debugLog('session:hydrate:timing', { durationMs: sessionMs, durationSec: _sec(sessionMs) });
+          if (res && res.success && res.data && res.data.user) {
+            var data = res.data || {};
+            var user = data.user;
+            var dashboard = data.dashboard || {};
+            _writeBootCache(user, dashboard);
+            showApp(user, { skipInitialDashboardLoad: true });
+            applyDashboardData(dashboard);
+            if (Number(dashboard.totalVisible || 0) === 0) {
+              // Force a direct refresh when bootstrap payload looks stale/empty.
+              window.loadDashboard({ forceRefresh: true });
+            }
+            _rememberDashboardData(dashboard);
+            _debugLog('dashboard:fast:timing', {
+              seqToken: 1,
+              roundTripMs: sessionMs,
+              roundTripSec: _sec(sessionMs),
+            });
+            if (dashboard.perf) {
+              _debugLog('dashboard:server:split', {
+                readDevoteesMs: Number(dashboard.perf.readDevoteesMs || 0),
+                processDevoteesMs: Number(dashboard.perf.processDevoteesMs || 0),
+                serverTotalMs: Number(dashboard.perf.totalMs || 0),
+                networkBrowserMs: Math.max(0, sessionMs - Number(dashboard.perf.totalMs || 0)),
+              });
+            }
+            if (!silent) {
+              var bootVisibleMs = Date.now() - (_bootLoaderStartedAt || Date.now());
+              setGlobalLoading(false, '', 'hydrateSession.bootstrap.success');
+              _debugLog('boot:timing', {
+                loaderVisibleMs: bootVisibleMs,
+                loaderVisibleSec: _sec(bootVisibleMs),
+              });
+              _bootLoadingActive = false;
+              _bootLoaderStartedAt = 0;
+            }
+          } else {
+            _bootLoadingActive = false;
+            _bootLoaderStartedAt = 0;
+            if (!silent) setGlobalLoading(false, '', 'hydrateSession.success.noUser');
+            _clearBootCache();
+            showLogin();
+          }
+        })
+        .withFailureHandler(function () {
+          var sessionFailMs = Date.now() - sessionStartedAt;
+          _debugLog('session:hydrate:failure', {});
+          _debugLog('session:hydrate:timing', { durationMs: sessionFailMs, durationSec: _sec(sessionFailMs) });
+          _bootLoadingActive = false;
+          _bootLoaderStartedAt = 0;
+          if (!silent) setGlobalLoading(false, '', 'hydrateSession.failure');
+          showLogin();
+        })
+        .getBootstrapDashboardData();
+    }
+    window.addEventListener('resize', updateLayoutMode);
+    document.addEventListener('DOMContentLoaded', function () {
+      var savedTheme = 'dark';
+      try {
+        var saved = localStorage.getItem(THEME_KEY);
+        if (saved === 'light' || saved === 'dark') savedTheme = saved;
+      } catch (e) {}
+      applyTheme(savedTheme);
+      updateLayoutMode();
+      // Best-effort: ensure ErrorLogs tab exists without interrupting UX.
+      try {
+        google.script.run.withSuccessHandler(function () {}).withFailureHandler(function () {}).hppEnsureErrorLogSheet();
+      } catch (ignore) {}
+      var bootCache = _readBootCache();
+      if (bootCache && bootCache.user && bootCache.dashboard) {
+        showApp(bootCache.user, { skipInitialDashboardLoad: true });
+        applyDashboardData(bootCache.dashboard);
+        _rememberDashboardData(bootCache.dashboard);
+        _debugLog('dashboard:source', { source: 'boot' });
+        _syncBootCacheIfStale(bootCache);
+        _refreshDashboardInBackground();
+        // speed-first mode: do not revalidate session on every load
+      } else {
+        hydrateSession();
+      }
+      paintIcons();
+      syncThemeToggle();
+      var hb = $('header-account-btn');
+      if (hb) hb.addEventListener('click', function (e) { e.stopPropagation(); toggleHeaderAccountMenu(); });
+      var tt = $('themeToggle');
+      if (tt) {
+        tt.addEventListener('click', function () { window.toggleTheme(); });
+        tt.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            window.toggleTheme();
+          }
+        });
+      }
+      var boostBtn = $('game-loader-boost');
+      if (boostBtn) {
+        boostBtn.addEventListener('click', function () { window.loaderBoost(); });
+      }
+      document.addEventListener('click', function (e) {
+        var menu = $('header-account-menu');
+        var btn = $('header-account-btn');
+        if (!menu || !btn) return;
+        if (menu.contains(e.target) || btn.contains(e.target)) return;
+        closeHeaderAccountMenu();
+      });
+      var hs = $('header-search-input');
+      if (hs) {
+        var t = null;
+        hs.addEventListener('input', function () {
+          clearTimeout(t);
+          t = setTimeout(function () { applyHeaderSearch(hs.value); }, 260);
+        });
+        hs.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            applyHeaderSearch(hs.value);
+          }
+        });
+      }
+    });
+    window.addEventListener('error', function (event) {
+      reportClientError(
+        'window.onerror',
+        event && event.message ? event.message : 'Unhandled JS error',
+        event && event.error ? event.error : null,
+        { filename: event && event.filename, line: event && event.lineno, column: event && event.colno }
+      );
+    });
+    window.addEventListener('unhandledrejection', function (event) {
+      var reason = event && event.reason;
+      var msg = reason && reason.message ? reason.message : String(reason || 'Unhandled promise rejection');
+      reportClientError('window.unhandledrejection', msg, reason, {});
+    });
+  })();
+</script>

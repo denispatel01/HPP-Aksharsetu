@@ -1,0 +1,18 @@
+<section class="page-inner">
+  <h1>Settings</h1>
+  <p class="muted">Preferences and account options.</p>
+
+  <div class="card" style="margin-top:12px;">
+    <div class="card-head">
+      <h3>Diagnostics</h3>
+      <p class="muted">Quick runtime details and latest backend/client errors.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button type="button" class="btn-secondary" onclick="loadDiagnostics()">Refresh Diagnostics</button>
+      <button type="button" class="btn-secondary" onclick="ensureErrorLogSheet()">Create ErrorLogs Sheet</button>
+    </div>
+    <div id="diag-summary" class="muted" style="margin-top:10px;">Diagnostics not loaded yet.</div>
+    <pre id="diag-errors" style="margin-top:10px;max-height:320px;overflow:auto;background:var(--color-bg-elevated);border:1px solid var(--color-border);border-radius:10px;padding:10px;font-size:0.78rem;line-height:1.4;"></pre>
+  </div>
+</section>
+  
