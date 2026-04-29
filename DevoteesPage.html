@@ -748,7 +748,7 @@
       font-weight: 600;
       color: #fff;
     }
-    .bottom-sheet .type-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .bottom-sheet .type-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.7rem; }
     .bottom-sheet .type-chips button {
       border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 999rem;
@@ -938,8 +938,8 @@
       align-items: flex-start;
     }
     #dev-view-modal .dv-profile-photo {
-      width: 7.25rem;
-      height: 7.25rem;
+      width: min(10.5rem, 38vw);
+      height: min(10.5rem, 38vw);
       border-radius: 1rem;
       flex-shrink: 0;
       background: linear-gradient(145deg, rgba(232, 162, 60, 0.25), rgba(10, 10, 11, 0.9));
@@ -1419,11 +1419,20 @@
         <div>
           <label for="dev-relation">Relation with head</label>
           <select id="dev-relation" class="form-select" onchange="toggleDevRefBlock()">
-            <option value="Self">Self (new family head)</option>
-            <option value="Spouse">Spouse</option>
-            <option value="Child">Child</option>
-            <option value="Parent">Parent</option>
-            <option value="Other">Other</option>
+            <option value="Son">Son</option>
+            <option value="Daughter">Daughter</option>
+            <option value="Father">Father</option>
+            <option value="Mother">Mother</option>
+            <option value="Brother">Brother</option>
+            <option value="Sister">Sister</option>
+            <option value="Wife">Wife</option>
+            <option value="Husband">Husband</option>
+            <option value="Daughter-in-law">Daughter-in-law</option>
+            <option value="Father-in-law">Father-in-law</option>
+            <option value="Mother-in-law">Mother-in-law</option>
+            <option value="Grand Mother">Grand Mother</option>
+            <option value="Grand Father">Grand Father</option>
+            <option value="Uncle">Uncle</option>
           </select>
         </div>
       </div>
@@ -1443,6 +1452,7 @@
           <button type="button" data-type="irregular sabha">Irregular Sabha</button>
           <button type="button" data-type="occasional sabha">Occasional Sabha</button>
           <button type="button" data-type="special sabha">Special Sabha</button>
+          <button type="button" data-type="padhramni">Padhramni</button>
           <button type="button" data-type="zoli/prasad">Zoli/Prasad</button>
           <button type="button" data-type="shibir/samaiya">Shibir/Samaiya</button>
           <button type="button" data-type="dashansh seva">Dashansh Seva</button>
@@ -1466,8 +1476,8 @@
           </div>
         </div>
         <div id="dev-ref-block" style="margin-top:0.45rem;">
-          <label for="dev-ref-search">Reference (name)</label>
-          <input id="dev-ref-search" class="form-input" type="search" placeholder="Type 2+ letters" autocomplete="off">
+          <label for="dev-ref-search">Reference</label>
+          <input id="dev-ref-search" class="form-input" type="search" placeholder="Search existing devotee" autocomplete="off">
           <div id="dev-ref-results" class="ref-results"></div>
           <input type="hidden" id="dev-ref-id" value="">
         </div>
@@ -1489,64 +1499,40 @@
             <input id="dev-email" class="form-input" type="email" placeholder="name@example.com">
           </div>
           <div>
-            <label for="dev-qualification-select">Qualification (Dropdown)</label>
-            <select id="dev-qualification-select" class="form-select">
-              <option value="">Select qualification</option>
-              <option value="Below 10">Below 10</option>
-              <option value="SSC">SSC</option>
-              <option value="HSC">HSC</option>
-              <option value="BBA">BBA</option>
-              <option value="BCA">BCA</option>
-              <option value="B.Com">B.Com</option>
-              <option value="B.E.">B.E.</option>
-              <option value="B.Tech">B.Tech</option>
-              <option value="M.E.">M.E.</option>
-              <option value="M.Tech">M.Tech</option>
-              <option value="M.Com">M.Com</option>
-              <option value="CA">CA</option>
-              <option value="CS">CS</option>
-              <option value="Doctor">Doctor</option>
-              <option value="Ph.D">Ph.D</option>
-              <option value="ITI">ITI</option>
-              <option value="Other">Other</option>
-            </select>
+            <label for="dev-qualification">Qualification</label>
+            <input id="dev-qualification" class="form-input" list="dev-qualification-list" placeholder="Select or type qualification">
+            <datalist id="dev-qualification-list">
+              <option value="MBBS"><option value="B.Tech / BE"><option value="MBA"><option value="LLB / BA LLB"><option value="BCA">
+              <option value="MCA"><option value="B.Sc Computer Science"><option value="CA (Chartered Accountant)"><option value="B.Ed"><option value="BDS">
+              <option value="BAMS"><option value="Pharm.D"><option value="B.Pharm"><option value="B.Arch"><option value="M.Tech">
+              <option value="PhD"><option value="B.Com"><option value="M.Com"><option value="CS (Company Secretary)"><option value="BHMS">
+              <option value="BPT"><option value="B.Sc Nursing"><option value="MD (Doctor of Medicine)"><option value="MS (Master of Surgery)"><option value="BBA">
+              <option value="B.Sc Agriculture"><option value="B.Sc Chemistry"><option value="B.Sc Physics"><option value="B.Sc Mathematics"><option value="B.Sc Biology">
+              <option value="B.Sc Biotechnology"><option value="IAS (UPSC)"><option value="IPS (UPSC)"><option value="IFS (UPSC)"><option value="IRS (UPSC)">
+              <option value="B.Sc Microbiology"><option value="BUMS"><option value="BVSc"><option value="M.Sc"><option value="MPhil">
+              <option value="B.El.Ed"><option value="D.El.Ed"><option value="B.P.Ed"><option value="M.Ed"><option value="Diploma in Civil Engineering">
+              <option value="Diploma in Mechanical Engineering"><option value="Diploma in Electrical Engineering"><option value="Diploma in Electronics"><option value="B.Sc IT"><option value="MBA Finance">
+              <option value="MBA HR"><option value="MBA Marketing"><option value="CFA (Chartered Financial Analyst)"><option value="ICWA / CMA"><option value="B.Sc Hotel Management">
+              <option value="Diploma in Nutrition"><option value="B.Sc Fashion Design"><option value="B.Sc Interior Design"><option value="BFA (Fine Arts)"><option value="B.Des (Design)">
+              <option value="BJMC (Mass Communication)"><option value="BA English"><option value="BA Hindi"><option value="BA Gujarati"><option value="BA History">
+              <option value="BA Political Science"><option value="BA Economics"><option value="BA Psychology"><option value="BA Sociology"><option value="BA Philosophy">
+              <option value="BSW (Social Work)"><option value="MSW"><option value="LLM"><option value="B.Sc Aviation"><option value="AME (Aircraft Maintenance Engineering)">
+              <option value="B.Sc Forensic Science"><option value="B.Sc Environmental Science"><option value="B.Sc Marine Science"><option value="B.Sc Geology"><option value="Mining Engineering">
+              <option value="Petroleum Engineering"><option value="Chemical Engineering"><option value="Food Technology"><option value="Textile Engineering"><option value="Automobile Engineering">
+              <option value="Aeronautical Engineering"><option value="Robotics Engineering"><option value="B.Tech AI & ML"><option value="B.Sc / PG Data Science"><option value="B.Sc / PG Cybersecurity">
+              <option value="Cloud Computing Certification"><option value="Digital Marketing Diploma / PG"><option value="BEM (Event Management)"><option value="Diploma in Journalism"><option value="B.Sc Optometry">
+              <option value="B.Sc Radiology"><option value="B.Sc MLT (Medical Lab Technology)"><option value="Occupational Therapy (BOT)"><option value="Speech Therapy"><option value="ITI (Industrial Training Institute)">
+            </datalist>
           </div>
           <div>
-            <label for="dev-qualification-text">Qualification (Type manually)</label>
-            <input id="dev-qualification-text" class="form-input" placeholder="Type if not in list">
-          </div>
-          <div>
-            <label for="dev-occupation-select">Occupation (Dropdown)</label>
-            <select id="dev-occupation-select" class="form-select">
-              <option value="">Select occupation</option>
-              <option value="Student">Student</option>
-              <option value="Service / Employee">Service / Employee</option>
-              <option value="Business">Business</option>
-              <option value="Self Employed">Self Employed</option>
-              <option value="Government Job">Government Job</option>
-              <option value="Private Job">Private Job</option>
-              <option value="Teacher">Teacher</option>
-              <option value="Professor">Professor</option>
-              <option value="Doctor">Doctor</option>
-              <option value="Nurse">Nurse</option>
-              <option value="Engineer">Engineer</option>
-              <option value="IT Professional">IT Professional</option>
-              <option value="Accountant">Accountant</option>
-              <option value="CA / CS">CA / CS</option>
-              <option value="Lawyer">Lawyer</option>
-              <option value="Farmer">Farmer</option>
-              <option value="Shopkeeper">Shopkeeper</option>
-              <option value="Driver">Driver</option>
-              <option value="Technician">Technician</option>
-              <option value="Homemaker">Homemaker</option>
-              <option value="Retired">Retired</option>
-              <option value="Unemployed">Unemployed</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div>
-            <label for="dev-occupation-text">Occupation (Type manually)</label>
-            <input id="dev-occupation-text" class="form-input" placeholder="Type if not in list">
+            <label for="dev-occupation">Occupation</label>
+            <input id="dev-occupation" class="form-input" list="dev-occupation-list" placeholder="Select or type occupation">
+            <datalist id="dev-occupation-list">
+              <option value="Job"><option value="Business"><option value="Self Employed"><option value="Freelancer"><option value="Farmer">
+              <option value="Student"><option value="Housewife"><option value="Retired"><option value="Doctor"><option value="Lawyer">
+              <option value="Teacher"><option value="Contractor"><option value="Shop Owner"><option value="Not Working"><option value="NRI">
+              <option value="Politician"><option value="Artist"><option value="Sportsperson"><option value="Religious Worker"><option value="Other">
+            </datalist>
           </div>
           <div style="grid-column: 1 / -1;">
             <label for="dev-remark">Remark</label>
@@ -2420,18 +2406,9 @@
     };
   
     window.toggleDevRefBlock = function () {
-      var relation = (document.getElementById('dev-relation') || {}).value || 'Self';
       var refBlock = document.getElementById('dev-ref-block');
       if (!refBlock) return;
-      if (String(relation).toLowerCase() === 'self') {
-        refBlock.style.display = 'none';
-        document.getElementById('dev-ref-search').value = '';
-        document.getElementById('dev-ref-id').value = '';
-        document.getElementById('dev-ref-results').style.display = 'none';
-        document.getElementById('dev-ref-results').innerHTML = '';
-      } else {
-        refBlock.style.display = '';
-      }
+      refBlock.style.display = '';
     };
   
     function wireTypeChips() {
@@ -2461,7 +2438,7 @@
         if (/^data:image\//i.test(p)) return p;
         if (/^https?:\/\//i.test(p)) {
           var fid = extractDriveFileId(p);
-          if (fid) return 'https://drive.google.com/thumbnail?id=' + fid + '&sz=w1200';
+          if (fid) return 'https://drive.google.com/uc?export=view&id=' + fid;
           return p;
         }
       }
@@ -2473,7 +2450,11 @@
       if (!box) return;
       var v = resolveDevPhotoUrl(photoVal);
       if (v) {
-        box.innerHTML = '<img src="' + v.replace(/"/g, '') + '" alt="Photo">';
+        var fid = extractDriveFileId(v);
+        var fallback = fid ? 'https://drive.google.com/thumbnail?id=' + fid + '&sz=w1200' : '';
+        box.innerHTML = '<img src="' + v.replace(/"/g, '') + '" alt="Photo"' +
+          (fallback ? ' onerror="this.onerror=null;this.src=\'' + fallback + '\';"' : '') +
+          '>';
       } else {
         box.textContent = 'DP';
       }
@@ -2539,31 +2520,6 @@
       return parts.filter(Boolean).join(',');
     }
 
-    function pickInputOrSelect(inputId, selectId) {
-      var typed = (document.getElementById(inputId).value || '').trim();
-      if (typed) return typed;
-      return (document.getElementById(selectId).value || '').trim();
-    }
-
-    function setInputAndSelect(inputId, selectId, value) {
-      var v = String(value || '').trim();
-      var inputEl = document.getElementById(inputId);
-      var selectEl = document.getElementById(selectId);
-      if (!inputEl || !selectEl) return;
-      inputEl.value = '';
-      selectEl.value = '';
-      if (!v) return;
-      var found = false;
-      for (var i = 0; i < selectEl.options.length; i++) {
-        if (String(selectEl.options[i].value || '').toLowerCase() === v.toLowerCase()) {
-          selectEl.value = selectEl.options[i].value;
-          found = true;
-          break;
-        }
-      }
-      if (!found) inputEl.value = v;
-    }
-
     function getDefaultMandalForEntry() {
       var u = window.HPP && window.HPP.user;
       if (!u) return '';
@@ -2602,14 +2558,12 @@
         [
           'dev-first','dev-middle','dev-last','dev-mobile','dev-dob','dev-address',
           'dev-photo-url','dev-mandal','dev-leader','dev-karyakarta','dev-ref-search','dev-ref-id',
-          'dev-email','dev-qualification-text','dev-occupation-text','dev-remark'
+          'dev-email','dev-qualification','dev-occupation','dev-remark'
         ].forEach(function (id) {
           var el = document.getElementById(id);
           if (el) el.value = '';
         });
-        document.getElementById('dev-qualification-select').value = '';
-        document.getElementById('dev-occupation-select').value = '';
-        document.getElementById('dev-relation').value = 'Self';
+        document.getElementById('dev-relation').value = 'Son';
         document.getElementById('dev-blood').value = '';
         clearDevPhoto();
         document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
@@ -2644,14 +2598,15 @@
             document.getElementById('dev-mandal').value = d.Mandal || d.MandaID || '';
             document.getElementById('dev-leader').value = d.KaryakartaLeaderName || d.SubLeaderID || '';
             document.getElementById('dev-karyakarta').value = d.KaryakartaName || d.KaryakartaID || '';
-            document.getElementById('dev-ref-id').value = '';
-            document.getElementById('dev-relation').value = d.RelationWithHead || 'Self';
+            document.getElementById('dev-ref-id').value = d.ReferenceDevoteeID || d.Reference || '';
+            document.getElementById('dev-ref-search').value = d.ReferenceDevoteeID || d.Reference || '';
+            document.getElementById('dev-relation').value = d.RelationWithHead || 'Son';
             document.getElementById('dev-blood').value = d.BloodGroup || '';
             document.getElementById('dev-email').value = d.Email || '';
             document.getElementById('dev-remark').value = d.SpecialNeeds || '';
             var sk = parseDevSkills(d);
-            setInputAndSelect('dev-qualification-text', 'dev-qualification-select', sk.qualification || '');
-            setInputAndSelect('dev-occupation-text', 'dev-occupation-select', sk.occupation || '');
+            document.getElementById('dev-qualification').value = sk.qualification || '';
+            document.getElementById('dev-occupation').value = sk.occupation || '';
             var dtype = String(d.DevoteeType || '').toLowerCase();
             document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
               var t = b.getAttribute('data-type');
@@ -2708,9 +2663,9 @@
         DevoteeType: collectDevoteeTypes(),
         BloodGroup: document.getElementById('dev-blood').value,
         Email: document.getElementById('dev-email').value.trim(),
-        Qualification: pickInputOrSelect('dev-qualification-text', 'dev-qualification-select'),
-        Education: pickInputOrSelect('dev-qualification-text', 'dev-qualification-select'),
-        Occupation: pickInputOrSelect('dev-occupation-text', 'dev-occupation-select'),
+        Qualification: document.getElementById('dev-qualification').value.trim(),
+        Education: document.getElementById('dev-qualification').value.trim(),
+        Occupation: document.getElementById('dev-occupation').value.trim(),
         SpecialNeeds: document.getElementById('dev-remark').value.trim(),
         Gender: S.selectedGender
       };
@@ -2801,9 +2756,13 @@
           var name = devDisplayName(d);
           var initials = devInitials(name);
           var photoRaw = resolveDevPhotoUrl(d.Photo || '');
+          var photoFileId = extractDriveFileId(photoRaw);
+          var photoFallback = photoFileId ? 'https://drive.google.com/thumbnail?id=' + photoFileId + '&sz=w1200' : '';
           var photoInner =
             /^(https?:\/\/|data:image\/)/i.test(photoRaw)
-              ? '<img src="' + photoRaw.replace(/"/g, '') + '" alt="">'
+              ? '<img src="' + photoRaw.replace(/"/g, '') + '" alt=""' +
+                (photoFallback ? ' onerror="this.onerror=null;this.src=\'' + photoFallback + '\';"' : '') +
+                '>'
               : esc(initials);
           var tp = typePillHtml(d);
           var st = String(d.Status || '').toLowerCase();
