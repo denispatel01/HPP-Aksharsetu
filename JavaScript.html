@@ -663,7 +663,14 @@
       var bUpcoming = $('dash-birthdays-upcoming');
       if (bToday) {
         var today = (d && d.todayBirthdays) || [];
-        if (!today.length) bToday.textContent = 'No birthdays today.';
+        if (!today.length) {
+          bToday.innerHTML =
+            '<div class="dash-empty-bday">' +
+            '<div class="dash-empty-bday-badge">Today</div>' +
+            '<div class="dash-empty-bday-title">No Birthday Celebrations</div>' +
+            '<div class="dash-empty-bday-text">No birthdays are scheduled for today. Check upcoming birthdays below.</div>' +
+            '</div>';
+        }
         else {
           var tHtml = '<ul class="dash-list-ul">';
           for (var i = 0; i < today.length; i++) {

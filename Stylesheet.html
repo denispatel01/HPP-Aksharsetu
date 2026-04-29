@@ -1044,6 +1044,58 @@
     color: var(--color-text-secondary);
   }
   #dash-birthdays-today { margin-bottom: 0.9rem; }
+  .dash-empty-bday {
+    position: relative;
+    border: 1px solid rgba(255, 197, 122, 0.5);
+    border-left: 4px solid rgba(255, 214, 140, 0.95);
+    border-radius: 0.7rem;
+    padding: 0.85rem 0.9rem 0.82rem;
+    background:
+      radial-gradient(circle at 86% 15%, rgba(255, 228, 159, 0.22) 0, rgba(255, 228, 159, 0) 34%),
+      linear-gradient(135deg, rgba(255, 191, 90, 0.14) 0%, rgba(255, 142, 122, 0.1) 100%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 214, 140, 0.08) inset;
+    overflow: hidden;
+  }
+  .dash-empty-bday::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(255, 224, 138, 0.24) 1.2px, transparent 1.8px);
+    background-size: 22px 22px;
+    opacity: 0.35;
+  }
+  .dash-empty-bday-badge {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+    padding: 0.16rem 0.55rem;
+    border-radius: 999rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 650;
+    color: #3d2607;
+    background: linear-gradient(90deg, rgba(255, 224, 144, 0.95), rgba(255, 183, 122, 0.95));
+    border: 1px solid rgba(255, 210, 130, 0.78);
+    position: relative;
+    z-index: 1;
+  }
+  .dash-empty-bday-title {
+    position: relative;
+    z-index: 1;
+    font-size: 1.02rem;
+    line-height: 1.35;
+    font-weight: 620;
+    color: #fff2da;
+  }
+  .dash-empty-bday-text {
+    position: relative;
+    z-index: 1;
+    margin-top: 0.36rem;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: rgba(255, 236, 209, 0.9);
+  }
   #dash-birthdays-today .dash-list-ul,
   #dash-birthdays-upcoming .dash-list-ul,
   #dash-karyakarta-yuvak .dash-list-ul { list-style: none; padding-left: 0; }
