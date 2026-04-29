@@ -654,8 +654,9 @@
     }
     .bottom-sheet .sheet-body {
       overflow-y: auto;
-      padding: 0.8rem 1rem 1rem;
+      padding: 0.8rem 1rem 1.6rem;
       flex: 1;
+      scroll-padding-bottom: 5rem;
     }
     .bottom-sheet .sheet-footer {
       display: flex;
@@ -667,6 +668,7 @@
       position: sticky;
       bottom: 0;
       z-index: 2;
+      box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.35);
     }
     .bottom-sheet .form-grid {
       display: grid;
@@ -938,8 +940,8 @@
       align-items: flex-start;
     }
     #dev-view-modal .dv-profile-photo {
-      width: min(10.5rem, 38vw);
-      height: min(10.5rem, 38vw);
+      width: min(13rem, 46vw);
+      height: min(13rem, 46vw);
       border-radius: 1rem;
       flex-shrink: 0;
       background: linear-gradient(145deg, rgba(232, 162, 60, 0.25), rgba(10, 10, 11, 0.9));
@@ -1407,7 +1409,7 @@
         </div>
         <div>
           <label for="dev-dob">DOB</label>
-          <input id="dev-dob" class="form-input" type="date">
+          <input id="dev-dob" class="form-input" type="text" inputmode="numeric" placeholder="DD/MM/YYYY or YYYY-MM-DD">
         </div>
         <div>
           <label>Gender</label>
@@ -1419,6 +1421,7 @@
         <div>
           <label for="dev-relation">Relation with head</label>
           <select id="dev-relation" class="form-select" onchange="toggleDevRefBlock()">
+            <option value="Self">Self</option>
             <option value="Son">Son</option>
             <option value="Daughter">Daughter</option>
             <option value="Father">Father</option>
@@ -1474,12 +1477,12 @@
             <label for="dev-karyakarta">Karyakarta Name</label>
             <input id="dev-karyakarta" class="form-input" placeholder="Karyakarta full name">
           </div>
-        </div>
-        <div id="dev-ref-block" style="margin-top:0.45rem;">
-          <label for="dev-ref-search">Reference</label>
-          <input id="dev-ref-search" class="form-input" type="search" placeholder="Search existing devotee" autocomplete="off">
-          <div id="dev-ref-results" class="ref-results"></div>
-          <input type="hidden" id="dev-ref-id" value="">
+          <div id="dev-ref-block">
+            <label for="dev-ref-search" id="dev-ref-label">Reference</label>
+            <input id="dev-ref-search" class="form-input" type="search" placeholder="Search existing devotee" autocomplete="off">
+            <div id="dev-ref-results" class="ref-results"></div>
+            <input type="hidden" id="dev-ref-id" value="">
+          </div>
         </div>
       </details>
   
@@ -1504,7 +1507,7 @@
               <option value="">Select qualification</option>
               <option value="MBBS">MBBS</option><option value="B.Tech / BE">B.Tech / BE</option><option value="MBA">MBA</option><option value="LLB / BA LLB">LLB / BA LLB</option><option value="BCA">BCA</option>
               <option value="MCA">MCA</option><option value="B.Sc Computer Science">B.Sc Computer Science</option><option value="CA (Chartered Accountant)">CA (Chartered Accountant)</option><option value="B.Ed">B.Ed</option><option value="BDS">BDS</option>
-              <option value="BAMS">BAMS</option><option value="Pharm.D">Pharm.D</option><option value="B.Pharm">B.Pharm</option><option value="B.Arch">B.Arch</option><option value="M.Tech">M.Tech</option>
+              <option value="BAMS">BAMS</option><option value="Pharm.D">Pharm.D</option><option value="B.Pharm">B.Pharm</option><option value="B.Arch">B.Arch</option><option value="ME/M.Tech">ME/M.Tech</option>
               <option value="PhD">PhD</option><option value="B.Com">B.Com</option><option value="M.Com">M.Com</option><option value="CS (Company Secretary)">CS (Company Secretary)</option><option value="BHMS">BHMS</option>
               <option value="BPT">BPT</option><option value="B.Sc Nursing">B.Sc Nursing</option><option value="MD (Doctor of Medicine)">MD (Doctor of Medicine)</option><option value="MS (Master of Surgery)">MS (Master of Surgery)</option><option value="BBA">BBA</option>
               <option value="B.Sc Agriculture">B.Sc Agriculture</option><option value="B.Sc Chemistry">B.Sc Chemistry</option><option value="B.Sc Physics">B.Sc Physics</option><option value="B.Sc Mathematics">B.Sc Mathematics</option><option value="B.Sc Biology">B.Sc Biology</option>
@@ -2406,9 +2409,24 @@
     };
   
     window.toggleDevRefBlock = function () {
+      var relation = (document.getElementById('dev-relation') || {}).value || 'Self';
       var refBlock = document.getElementById('dev-ref-block');
+      var refLabel = document.getElementById('dev-ref-label');
       if (!refBlock) return;
-      refBlock.style.display = '';
+      if (String(relation).toLowerCase() === 'self') {
+        refBlock.style.display = 'none';
+        document.getElementById('dev-ref-search').value = '';
+        document.getElementById('dev-ref-id').value = '';
+        document.getElementById('dev-ref-results').style.display = 'none';
+        document.getElementById('dev-ref-results').innerHTML = '';
+      } else {
+        refBlock.style.display = '';
+      }
+      if (refLabel) {
+        refLabel.textContent = String(relation).toLowerCase() === 'self'
+          ? 'Reference'
+          : "Who's " + relation + '?';
+      }
     };
   
     function wireTypeChips() {
@@ -2431,6 +2449,9 @@
     function resolveDevPhotoUrl(photoVal) {
       var raw = String(photoVal || '').trim();
       if (!raw) return '';
+      if (/^[a-zA-Z0-9_-]{20,}$/.test(raw)) {
+        return 'https://drive.google.com/uc?export=view&id=' + raw;
+      }
       var parts = raw.split('|').map(function (p) { return String(p || '').trim(); }).filter(Boolean);
       if (!parts.length) parts = [raw];
       for (var i = 0; i < parts.length; i++) {
@@ -2563,8 +2584,18 @@
     }
   
     function isoFromInputDate(val) {
-      if (!val) return '';
-      return val;
+      var raw = String(val || '').trim();
+      if (!raw) return '';
+      var iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (iso) return raw;
+      var dmy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+      if (dmy) {
+        var dd = ('0' + dmy[1]).slice(-2);
+        var mm = ('0' + dmy[2]).slice(-2);
+        var yyyy = dmy[3];
+        return yyyy + '-' + mm + '-' + dd;
+      }
+      return raw;
     }
   
     window.openDevForm = function (mode, devoteeID) {
@@ -2588,7 +2619,7 @@
           var el = document.getElementById(id);
           if (el) el.value = '';
         });
-        document.getElementById('dev-relation').value = 'Son';
+        document.getElementById('dev-relation').value = 'Self';
         document.getElementById('dev-blood').value = '';
         clearDevPhoto();
         document.querySelectorAll('#dev-type-chips button').forEach(function (b) {
@@ -2614,9 +2645,7 @@
             document.getElementById('dev-middle').value = d.MiddleName || '';
             document.getElementById('dev-last').value = d.LastName || '';
             document.getElementById('dev-mobile').value = d.Mobile || '';
-            document.getElementById('dev-dob').value = d.DOB
-              ? String(d.DOB).substring(0, 10)
-              : '';
+            document.getElementById('dev-dob').value = d.DOB ? dobToDdMmYyyy(String(d.DOB).substring(0, 10)) : '';
             document.getElementById('dev-address').value = d.Address || '';
             document.getElementById('dev-photo-url').value = d.Photo || '';
             setDevPhotoPreview(d.Photo || '');
@@ -2625,7 +2654,7 @@
             document.getElementById('dev-karyakarta').value = d.KaryakartaName || d.KaryakartaID || '';
             document.getElementById('dev-ref-id').value = d.ReferenceDevoteeID || d.Reference || '';
             document.getElementById('dev-ref-search').value = d.ReferenceDevoteeID || d.Reference || '';
-            document.getElementById('dev-relation').value = d.RelationWithHead || 'Son';
+            document.getElementById('dev-relation').value = d.RelationWithHead || 'Self';
             document.getElementById('dev-blood').value = d.BloodGroup || '';
             document.getElementById('dev-email').value = d.Email || '';
             document.getElementById('dev-remark').value = d.SpecialNeeds || '';
@@ -2676,7 +2705,7 @@
         MiddleName: document.getElementById('dev-middle').value.trim(),
         LastName: last,
         Mobile: document.getElementById('dev-mobile').value.trim(),
-        DOB: document.getElementById('dev-dob').value,
+        DOB: isoFromInputDate(document.getElementById('dev-dob').value),
         Address: document.getElementById('dev-address').value.trim(),
         Photo: document.getElementById('dev-photo-url').value.trim(),
         Mandal: document.getElementById('dev-mandal').value.trim(),
