@@ -1,5 +1,925 @@
-<section class="page-inner">
-    <h1>Attendance</h1>
-    <p class="muted">Mark and review attendance here.</p>
-  </section>
-  
+<section id="attendance-content" class="page-inner att-page">
+  <div id="att-access-denied" class="att-card att-hidden">
+    <p class="muted">You need an admin, leader, sub-leader, or karyakarta role to mark attendance. Devotees can still use the rest of the app.</p>
+  </div>
+
+  <div id="att-main" class="att-hidden">
+    <div class="att-tabs" role="tablist">
+      <button type="button" class="att-tab active" data-att-tab="mark" aria-selected="true">Mark</button>
+      <button type="button" class="att-tab" data-att-tab="reports" aria-selected="false">Reports</button>
+    </div>
+
+    <!-- —— Mark —— -->
+    <div id="att-panel-mark" class="att-panel">
+      <div class="att-live-row">
+        <span class="att-live-dot" aria-hidden="true"></span>
+        <span class="att-live-label">Live</span>
+        <span class="att-refresh-hint" id="att-refresh-hint">Auto-refresh on selected date</span>
+      </div>
+      <div class="att-field">
+        <label class="att-label" for="att-friday-row">Sabha date</label>
+        <div class="att-friday-row" id="att-friday-row"></div>
+      </div>
+      <div class="att-session-line" id="att-session-line">
+        <span id="att-session-title">—</span>
+        <span class="att-session-badge" id="att-session-badge"></span>
+      </div>
+      <div class="att-stats">
+        <div class="att-stat"><div class="att-stat-val" id="att-stat-total">—</div><div class="att-stat-lbl">Total</div></div>
+        <div class="att-stat"><div class="att-stat-val att-green" id="att-stat-present">—</div><div class="att-stat-lbl">Present</div></div>
+        <div class="att-stat"><div class="att-stat-val att-amber" id="att-stat-absent">—</div><div class="att-stat-lbl">Remaining</div></div>
+        <div class="att-stat"><div class="att-stat-val att-gold" id="att-stat-pct">—</div><div class="att-stat-lbl">%</div></div>
+      </div>
+      <div class="att-quick" id="att-quick">
+        <div>
+          <div class="att-quick-title">Quick mode</div>
+          <div class="att-quick-hint">Search, then press Enter to mark the first match</div>
+        </div>
+        <div class="att-quick-count" id="att-quick-count">—</div>
+      </div>
+      <div class="att-search-row">
+        <input type="search" id="att-search" class="att-input" placeholder="Name, mobile, or yyyy-MM-dd…" autocomplete="off" />
+        <button type="button" class="att-btn-clear" id="att-search-clear" aria-label="Clear search">✕</button>
+      </div>
+      <div class="att-pills">
+        <button type="button" class="att-pill active" data-filter="all">All</button>
+        <button type="button" class="att-pill" data-filter="male">Male</button>
+        <button type="button" class="att-pill" data-filter="female">Female</button>
+      </div>
+      <div class="att-list-head">
+        <span id="att-list-title">Devotees</span>
+        <span id="att-list-count"></span>
+      </div>
+      <div class="att-list" id="att-list"></div>
+    </div>
+
+    <!-- —— Reports —— -->
+    <div id="att-panel-reports" class="att-panel att-hidden">
+      <div class="att-field">
+        <label class="att-label" for="att-session-select">Sabha</label>
+        <select id="att-session-select" class="att-select"></select>
+      </div>
+      <div class="att-field" id="att-notes-block">
+        <label class="att-label" for="att-notes">Sabha notes</label>
+        <textarea id="att-notes" class="att-textarea" rows="2" placeholder="Topics, guests, reminders…"></textarea>
+        <button type="button" class="att-btn att-btn-primary" id="att-notes-save">Save notes</button>
+      </div>
+      <div id="att-report-loader" class="att-card att-muted">Select a sabha to load the report.</div>
+      <div id="att-report-body" class="att-hidden">
+        <div class="att-stats att-stats-tight">
+          <div class="att-stat"><div class="att-stat-val" id="att-rep-total">—</div><div class="att-stat-lbl">Total</div></div>
+          <div class="att-stat"><div class="att-stat-val att-green" id="att-rep-present">—</div><div class="att-stat-lbl">Present</div></div>
+          <div class="att-stat"><div class="att-stat-val att-rose" id="att-rep-absent">—</div><div class="att-stat-lbl">Absent</div></div>
+          <div class="att-stat"><div class="att-stat-val att-gold" id="att-rep-pct">—</div><div class="att-stat-lbl">%</div></div>
+        </div>
+        <div class="att-actions">
+          <button type="button" class="att-btn" id="att-copy-report">Copy report</button>
+          <button type="button" class="att-btn" id="att-wa-report">WhatsApp</button>
+        </div>
+        <div class="att-card">
+          <h3 class="att-h3">By karyakarta</h3>
+          <div id="att-karya-list" class="att-karya-list"></div>
+          <button type="button" class="att-btn att-btn-block" id="att-wa-karya">Share karyakarta summary</button>
+        </div>
+        <div class="att-card">
+          <h3 class="att-h3">Present</h3>
+          <div id="att-rep-present-names" class="att-names"></div>
+        </div>
+        <div class="att-card">
+          <h3 class="att-h3">Absent</h3>
+          <div id="att-rep-absent-names" class="att-names"></div>
+        </div>
+        <div class="att-card">
+          <h3 class="att-h3">Recent sabhas (trend)</h3>
+          <div id="att-trend" class="att-trend"></div>
+        </div>
+        <div class="att-card">
+          <h3 class="att-h3">Top regular attendees</h3>
+          <div id="att-top5" class="att-names"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="att-sheet-backdrop att-hidden" id="att-sheet-backdrop"></div>
+  <div class="att-sheet att-hidden" id="att-sheet" role="dialog" aria-modal="true">
+    <div class="att-sheet-handle"></div>
+    <div class="att-sheet-name" id="att-sheet-name"></div>
+    <p class="muted att-sheet-sub">Marked present for this sabha</p>
+    <button type="button" class="att-btn att-btn-danger att-btn-block" id="att-sheet-undo">Undo attendance</button>
+    <button type="button" class="att-btn att-btn-block" id="att-sheet-close">Close</button>
+  </div>
+
+  <style>
+    #attendance-content.att-page { max-width: 56rem; }
+    #attendance-content .att-hidden { display: none !important; }
+    #attendance-content .att-card {
+      background: var(--surface-1, #141416);
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 0.85rem;
+    }
+    #attendance-content .att-muted { color: var(--text-muted, #9a9590); font-size: 0.9rem; }
+    #attendance-content .att-tabs { display: flex; gap: 0.35rem; margin-bottom: 1rem; }
+    #attendance-content .att-tab {
+      flex: 1;
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.12));
+      background: transparent;
+      color: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #attendance-content .att-tab.active {
+      background: linear-gradient(145deg, rgba(201,169,110,0.25), rgba(201,169,110,0.08));
+      border-color: rgba(201,169,110,0.45);
+    }
+    #attendance-content .att-live-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+      color: var(--text-muted, #9a9590);
+    }
+    #attendance-content .att-live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #3cb878;
+      box-shadow: 0 0 10px rgba(60,184,120,0.7);
+    }
+    #attendance-content .att-refresh-hint { margin-left: auto; font-size: 0.72rem; opacity: 0.85; }
+    #attendance-content .att-field { margin-bottom: 0.85rem; }
+    #attendance-content .att-label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-muted, #9a9590); }
+    #attendance-content .att-friday-row {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    #attendance-content .att-pill-date {
+      flex: 0 0 auto;
+      min-width: 3.4rem;
+      padding: 0.45rem 0.5rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.1));
+      background: rgba(255,255,255,0.03);
+      text-align: center;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    #attendance-content .att-pill-date.active {
+      border-color: rgba(201,169,110,0.55);
+      background: rgba(201,169,110,0.12);
+    }
+    #attendance-content .att-pill-date .d { font-weight: 700; font-size: 1rem; }
+    #attendance-content .att-pill-date .badge { font-size: 0.62rem; margin-top: 0.15rem; color: #c9a96e; }
+    #attendance-content .att-session-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    #attendance-content .att-session-badge { font-size: 0.75rem; color: var(--text-muted, #9a9590); }
+    #attendance-content .att-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    #attendance-content .att-stats-tight { margin-top: 0.5rem; }
+    #attendance-content .att-stat {
+      background: var(--surface-1, #141416);
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
+      border-radius: 10px;
+      padding: 0.5rem 0.4rem;
+      text-align: center;
+    }
+    #attendance-content .att-stat-val { font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    #attendance-content .att-stat-lbl { font-size: 0.65rem; color: var(--text-muted, #9a9590); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.15rem; }
+    #attendance-content .att-green { color: #5ecf8f; }
+    #attendance-content .att-amber { color: #e8a23c; }
+    #attendance-content .att-gold { color: #c9a96e; }
+    #attendance-content .att-rose { color: #e87a8a; }
+    #attendance-content .att-quick {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
+      background: rgba(60, 184, 120, 0.08);
+      border: 1px solid rgba(60, 184, 120, 0.25);
+      margin-bottom: 0.65rem;
+      font-size: 0.82rem;
+    }
+    #attendance-content .att-quick-title { font-weight: 700; }
+    #attendance-content .att-quick-hint { font-size: 0.72rem; color: var(--text-muted, #9a9590); }
+    #attendance-content .att-search-row { display: flex; gap: 0.35rem; margin-bottom: 0.5rem; }
+    #attendance-content .att-input, #attendance-content .att-select, #attendance-content .att-textarea {
+      width: 100%;
+      padding: 0.55rem 0.65rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.12));
+      background: rgba(0,0,0,0.2);
+      color: inherit;
+      font: inherit;
+    }
+    #attendance-content .att-btn-clear {
+      flex: 0 0 auto;
+      width: 2.25rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.12));
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+    #attendance-content .att-pills { display: flex; gap: 0.35rem; margin-bottom: 0.65rem; flex-wrap: wrap; }
+    #attendance-content .att-pill {
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.12));
+      background: transparent;
+      color: inherit;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    #attendance-content .att-pill.active {
+      background: rgba(201,169,110,0.2);
+      border-color: rgba(201,169,110,0.45);
+    }
+    #attendance-content .att-list-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text-muted, #9a9590);
+    }
+    #attendance-content .att-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    #attendance-content .att-row {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.55rem 0.65rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
+      background: var(--surface-1, #141416);
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+      color: inherit;
+      font: inherit;
+    }
+    #attendance-content .att-row.present { border-color: rgba(60,184,120,0.35); background: rgba(60,184,120,0.06); }
+    #attendance-content .att-av {
+      width: 2.35rem;
+      height: 2.35rem;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      background: rgba(201,169,110,0.2);
+      color: #c9a96e;
+      flex-shrink: 0;
+    }
+    #attendance-content .att-row-main { flex: 1; min-width: 0; }
+    #attendance-content .att-row-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #attendance-content .att-row-meta { font-size: 0.75rem; color: var(--text-muted, #9a9590); margin-top: 0.12rem; }
+    #attendance-content .att-row-mark { font-size: 1.1rem; opacity: 0.35; }
+    #attendance-content .att-row.present .att-row-mark { opacity: 1; color: #5ecf8f; }
+    #attendance-content .att-h3 { font-size: 0.95rem; margin: 0 0 0.5rem; font-weight: 600; }
+    #attendance-content .att-names { font-size: 0.88rem; line-height: 1.45; color: var(--text-muted, #c8c4bc); }
+    #attendance-content .att-trend { font-size: 0.82rem; }
+    #attendance-content .att-trend-row { display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    #attendance-content .att-karya-item {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.86rem;
+    }
+    #attendance-content .att-karya-head { font-weight: 600; display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+    #attendance-content .att-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0.85rem; }
+    #attendance-content .att-btn {
+      padding: 0.45rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.14));
+      background: rgba(255,255,255,0.04);
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      font-size: 0.86rem;
+    }
+    #attendance-content .att-btn-primary {
+      background: linear-gradient(145deg, #c9a96e, #9a7a40);
+      color: #0f0f10;
+      border: 0;
+      font-weight: 600;
+      margin-top: 0.45rem;
+    }
+    #attendance-content .att-btn-danger { border-color: rgba(232,122,138,0.45); color: #f0b4bc; }
+    #attendance-content .att-btn-block { width: 100%; }
+    #attendance-content .att-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 80;
+    }
+    #attendance-content .att-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 90;
+      max-width: 32rem;
+      margin: 0 auto;
+      background: var(--surface-1, #1a1a1d);
+      border-radius: 16px 16px 0 0;
+      padding: 0.75rem 1rem 1.25rem;
+      border: 1px solid var(--border-subtle, rgba(255,255,255,0.1));
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.45);
+    }
+    #attendance-content .att-sheet-handle { width: 2.5rem; height: 4px; border-radius: 4px; background: rgba(255,255,255,0.15); margin: 0 auto 0.65rem; }
+    #attendance-content .att-sheet-name { font-weight: 700; font-size: 1.05rem; }
+    #attendance-content .att-sheet-sub { margin: 0.25rem 0 0.75rem; }
+  </style>
+
+  <script>
+    (function () {
+      var S = {
+        devotees: [],
+        present: {},
+        sabha: null,
+        activeDate: null,
+        filter: 'all',
+        search: '',
+        tab: 'mark',
+        pollTimer: null,
+        markedCount: 0,
+        sheetDev: null,
+        allSessions: [],
+        reportData: null,
+        karyaData: null,
+        analytics: null,
+        lastExport: null,
+      };
+
+      function $(id) {
+        return document.getElementById(id);
+      }
+
+      function esc(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function toYMD(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      }
+
+      function getFridayDates(past, future) {
+        past = past || 6;
+        future = future || 2;
+        var out = [];
+        var today = new Date();
+        var todayStr = toYMD(today);
+        var d = new Date(today);
+        var found = 0;
+        while (found < past) {
+          if (d.getDay() === 5) {
+            var ds = toYMD(d);
+            out.unshift({ dateStr: ds, isFuture: false, isToday: ds === todayStr });
+            found++;
+          }
+          d.setDate(d.getDate() - 1);
+        }
+        d = new Date(today);
+        d.setDate(d.getDate() + 1);
+        found = 0;
+        while (found < future) {
+          if (d.getDay() === 5) {
+            var ds2 = toYMD(d);
+            out.push({ dateStr: ds2, isFuture: true, isToday: ds2 === todayStr });
+            found++;
+          }
+          d.setDate(d.getDate() + 1);
+        }
+        return out;
+      }
+
+      function fullName(d) {
+        return [d.firstName, d.middleName, d.lastName].filter(Boolean).join(' ');
+      }
+
+      function initials(d) {
+        var a = (d.firstName || '?').charAt(0);
+        var b = (d.lastName || '?').charAt(0);
+        return (a + b).toUpperCase();
+      }
+
+      function genderKey(g) {
+        var x = String(g || '').toLowerCase();
+        if (x === 'm' || x === 'male') return 'male';
+        if (x === 'f' || x === 'female') return 'female';
+        return 'other';
+      }
+
+      function stopPoll() {
+        if (S.pollTimer) {
+          clearInterval(S.pollTimer);
+          S.pollTimer = null;
+        }
+      }
+
+      function startPollIfToday() {
+        stopPoll();
+        var todayStr = toYMD(new Date());
+        if (S.activeDate !== todayStr || !S.sabha || !S.sabha.id) return;
+        S.pollTimer = setInterval(function () {
+          google.script.run
+            .withSuccessHandler(function (res) {
+              if (!res || !res.success || !res.data) return;
+              var ids = res.data.presentIds || [];
+              var map = {};
+              for (var i = 0; i < ids.length; i++) map[ids[i]] = true;
+              S.present = map;
+              updateStats();
+              renderList();
+            })
+            .withFailureHandler(function () {})
+            .getLiveSabhaAttendance(S.sabha.id);
+        }, 30000);
+      }
+
+      function updateStats() {
+        var total = S.devotees.length;
+        var p = 0;
+        for (var i = 0; i < total; i++) {
+          if (S.present[S.devotees[i].id]) p++;
+        }
+        $('att-stat-total').textContent = String(total);
+        $('att-stat-present').textContent = String(p);
+        $('att-stat-absent').textContent = String(Math.max(0, total - p));
+        $('att-stat-pct').textContent = total ? Math.round((p / total) * 100) + '%' : '0%';
+        $('att-quick-count').textContent = S.markedCount ? S.markedCount + ' this visit' : '—';
+      }
+
+      function filteredDevs() {
+        var q = S.search.trim().toLowerCase();
+        return S.devotees.filter(function (d) {
+          if (S.filter !== 'all' && genderKey(d.gender) !== S.filter) return false;
+          if (!q) return true;
+          var name = fullName(d).toLowerCase();
+          var mob = String(d.mobile || '').toLowerCase();
+          var bd = String(d.birthday || '').toLowerCase();
+          return name.indexOf(q) !== -1 || mob.indexOf(q) !== -1 || bd.indexOf(q) !== -1;
+        });
+      }
+
+      function renderList() {
+        var list = filteredDevs();
+        $('att-list-count').textContent = list.length + ' shown';
+        $('att-list').innerHTML = list
+          .map(function (d) {
+            var pr = !!S.present[d.id];
+            var nm = esc(fullName(d));
+            var meta = esc((d.mobile || '—') + ' · ' + (d.karyakarta || '—'));
+            return (
+              '<button type="button" class="att-row' +
+              (pr ? ' present' : '') +
+              '" data-id="' +
+              esc(d.id) +
+              '">' +
+              '<span class="att-av">' +
+              esc(initials(d)) +
+              '</span><span class="att-row-main"><span class="att-row-name">' +
+              nm +
+              '</span><span class="att-row-meta">' +
+              meta +
+              '</span></span><span class="att-row-mark">' +
+              (pr ? '✓' : '○') +
+              '</span></button>'
+            );
+          })
+          .join('');
+        Array.prototype.forEach.call(document.querySelectorAll('#att-list .att-row'), function (btn) {
+          btn.addEventListener('click', function () {
+            var id = btn.getAttribute('data-id');
+            toggleMark(id);
+          });
+        });
+      }
+
+      function openSheet(dev) {
+        S.sheetDev = dev;
+        $('att-sheet-name').textContent = fullName(dev);
+        $('att-sheet-backdrop').classList.remove('att-hidden');
+        $('att-sheet').classList.remove('att-hidden');
+      }
+
+      function closeSheet() {
+        S.sheetDev = null;
+        $('att-sheet-backdrop').classList.add('att-hidden');
+        $('att-sheet').classList.add('att-hidden');
+      }
+
+      function toggleMark(devoteeId) {
+        if (!S.sabha || !S.sabha.id) return;
+        var isPr = !!S.present[devoteeId];
+        if (isPr) {
+          var dev = null;
+          for (var i = 0; i < S.devotees.length; i++) {
+            if (S.devotees[i].id === devoteeId) {
+              dev = S.devotees[i];
+              break;
+            }
+          }
+          if (dev) openSheet(dev);
+          return;
+        }
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success) {
+              if (window.showToast) window.showToast((res && res.error) || 'Could not mark', 'error');
+              return;
+            }
+            var st = res.data && res.data.status;
+            if (st === 'already_marked') {
+              S.present[devoteeId] = true;
+              updateStats();
+              renderList();
+              if (window.showToast) window.showToast('Already marked', 'info');
+              return;
+            }
+            S.present[devoteeId] = true;
+            S.markedCount++;
+            updateStats();
+            renderList();
+            if (window.showToast) window.showToast('Marked present', 'success');
+          })
+          .withFailureHandler(function (err) {
+            if (window.showToast) window.showToast((err && err.message) || String(err), 'error');
+          })
+          .markSabhaPresent(S.sabha.id, devoteeId);
+      }
+
+      function doUndo() {
+        if (!S.sheetDev || !S.sabha) return;
+        var id = S.sheetDev.id;
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success) {
+              if (window.showToast) window.showToast((res && res.error) || 'Undo failed', 'error');
+              return;
+            }
+            delete S.present[id];
+            updateStats();
+            renderList();
+            closeSheet();
+            if (window.showToast) window.showToast('Attendance removed', 'info');
+          })
+          .withFailureHandler(function (err) {
+            if (window.showToast) window.showToast((err && err.message) || String(err), 'error');
+          })
+          .unmarkSabhaPresent(S.sabha.id, id);
+      }
+
+      function selectDate(dateStr) {
+        S.activeDate = dateStr;
+        stopPoll();
+        document.querySelectorAll('#att-friday-row .att-pill-date').forEach(function (el) {
+          el.classList.toggle('active', el.getAttribute('data-date') === dateStr);
+        });
+        $('att-list').innerHTML = '<p class="muted">Loading…</p>';
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success) {
+              $('att-access-denied').classList.remove('att-hidden');
+              $('att-main').classList.add('att-hidden');
+              if (window.showToast) window.showToast((res && res.error) || 'Could not load attendance', 'error');
+              return;
+            }
+            $('att-access-denied').classList.add('att-hidden');
+            $('att-main').classList.remove('att-hidden');
+            var data = res.data || {};
+            S.sabha = data.sabha;
+            S.devotees = data.devotees || [];
+            S.present = {};
+            (data.presentIds || []).forEach(function (id) {
+              S.present[id] = true;
+            });
+            S.markedCount = 0;
+            $('att-session-title').textContent = (S.sabha && S.sabha.title) || '—';
+            var todayStr = toYMD(new Date());
+            var badge =
+              S.sabha && S.sabha.date === todayStr ? 'Today' : S.sabha && S.sabha.date > todayStr ? 'Upcoming' : 'Past';
+            $('att-session-badge').textContent = badge;
+            updateStats();
+            renderList();
+            startPollIfToday();
+          })
+          .withFailureHandler(function (err) {
+            if (window.showToast) window.showToast((err && err.message) || String(err), 'error');
+          })
+          .getAttendanceBootstrap(dateStr);
+      }
+
+      function buildFridayRow() {
+        var fr = $('att-friday-row');
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var rows = getFridayDates(6, 2);
+        fr.innerHTML = rows
+          .map(function (f) {
+            var p = f.dateStr.split('-');
+            var badge = f.isToday ? 'Today' : f.isFuture ? 'Soon' : '';
+            return (
+              '<button type="button" class="att-pill-date' +
+              (f.isToday ? ' active' : '') +
+              '" data-date="' +
+              f.dateStr +
+              '"><div>Fri</div><div class="d">' +
+              parseInt(p[2], 10) +
+              '</div><div style="font-size:10px;color:#9a9590">' +
+              months[parseInt(p[1], 10) - 1] +
+              '</div>' +
+              (badge ? '<div class="badge">' + badge + '</div>' : '') +
+              '</button>'
+            );
+          })
+          .join('');
+        var past = rows.filter(function (x) {
+          return !x.isFuture;
+        });
+        var pick = past.length ? past[past.length - 1].dateStr : rows[0].dateStr;
+        Array.prototype.forEach.call(fr.querySelectorAll('.att-pill-date'), function (b) {
+          b.addEventListener('click', function () {
+            selectDate(b.getAttribute('data-date'));
+          });
+        });
+        selectDate(pick);
+      }
+
+      function setTab(name) {
+        S.tab = name;
+        document.querySelectorAll('.att-tab').forEach(function (t) {
+          var on = t.getAttribute('data-att-tab') === name;
+          t.classList.toggle('active', on);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        $('att-panel-mark').classList.toggle('att-hidden', name !== 'mark');
+        $('att-panel-reports').classList.toggle('att-hidden', name !== 'reports');
+        if (name === 'reports') loadReportsData();
+      }
+
+      function loadReportsData() {
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success) {
+              if (window.showToast) window.showToast((res && res.error) || 'Could not load sabha list', 'error');
+              return;
+            }
+            S.allSessions = res.data || [];
+            var sel = $('att-session-select');
+            sel.innerHTML = '<option value="">— Select sabha —</option>';
+            S.allSessions.forEach(function (s) {
+              var opt = document.createElement('option');
+              opt.value = s.id;
+              opt.textContent = (s.date || '') + ' — ' + (s.title || s.id);
+              sel.appendChild(opt);
+            });
+          })
+          .withFailureHandler(function (err) {
+            if (window.showToast) window.showToast((err && err.message) || String(err), 'error');
+          })
+          .getAllSabhasForAttendance();
+
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success) return;
+            S.analytics = res.data;
+            renderAnalyticsBits();
+          })
+          .withFailureHandler(function () {})
+          .getAttendanceAnalytics();
+      }
+
+      function renderAnalyticsBits() {
+        var a = S.analytics;
+        if (!a) return;
+        var trendEl = $('att-trend');
+        var t = a.trend || [];
+        trendEl.innerHTML = t
+          .map(function (row) {
+            return (
+              '<div class="att-trend-row"><span>' +
+              esc(row.date) +
+              '</span><span>' +
+              esc(String(row.count)) +
+              ' (' +
+              esc(String(row.pct)) +
+              '%)</span></div>'
+            );
+          })
+          .join('');
+        var top = a.top5 || [];
+        $('att-top5').innerHTML = top
+          .map(function (d, i) {
+            return (
+              '<div>' +
+              (i + 1) +
+              '. ' +
+              esc([d.firstName, d.middleName, d.lastName].filter(Boolean).join(' ')) +
+              ' — ' +
+              esc(String(d.count)) +
+              ' / ' +
+              esc(String(a.totalSessions || 0)) +
+              ' (' +
+              esc(String(d.pct)) +
+              '%)</div>'
+            );
+          })
+          .join('');
+      }
+
+      function loadReportForSabha(sabhaId) {
+        if (!sabhaId) {
+          $('att-report-loader').classList.remove('att-hidden');
+          $('att-report-body').classList.add('att-hidden');
+          $('att-report-loader').textContent = 'Select a sabha to load the report.';
+          return;
+        }
+        $('att-report-loader').classList.remove('att-hidden');
+        $('att-report-body').classList.add('att-hidden');
+        $('att-report-loader').textContent = 'Loading…';
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success) {
+              $('att-report-loader').textContent = (res && res.error) || 'Report failed.';
+              return;
+            }
+            S.reportData = res.data;
+            $('att-notes').value = (S.reportData.session && S.reportData.session.notes) || '';
+            $('att-rep-total').textContent = String(S.reportData.total);
+            $('att-rep-present').textContent = String(S.reportData.presentCount);
+            $('att-rep-absent').textContent = String(S.reportData.absentCount);
+            $('att-rep-pct').textContent = String(S.reportData.percentage) + '%';
+            $('att-rep-present-names').innerHTML = (S.reportData.present || [])
+              .map(function (d) {
+                return '<div>' + esc(fullName(d)) + '</div>';
+              })
+              .join('');
+            $('att-rep-absent-names').innerHTML = (S.reportData.absent || [])
+              .map(function (d) {
+                return '<div>' + esc(fullName(d)) + '</div>';
+              })
+              .join('');
+            $('att-report-loader').classList.add('att-hidden');
+            $('att-report-body').classList.remove('att-hidden');
+          })
+          .withFailureHandler(function (err) {
+            $('att-report-loader').textContent = (err && err.message) || String(err);
+          })
+          .getSabhaAttendanceReport(sabhaId);
+
+        google.script.run
+          .withSuccessHandler(function (res2) {
+            if (!res2 || !res2.success) return;
+            S.karyaData = res2.data || [];
+            $('att-karya-list').innerHTML = S.karyaData
+              .map(function (k) {
+                var line =
+                  esc(k.name) +
+                  ' · ' +
+                  k.present.length +
+                  '/' +
+                  k.total +
+                  ' present' +
+                  (k.mobile ? ' · ' + esc(k.mobile) : '');
+                return '<div class="att-karya-item"><div class="att-karya-head"><span>' + line + '</span></div></div>';
+              })
+              .join('');
+          })
+          .withFailureHandler(function () {})
+          .getKaryakartaAttendanceReport(sabhaId);
+      }
+
+      function exportCurrentReport(cb) {
+        var sid = $('att-session-select').value;
+        if (!sid) return;
+        google.script.run
+          .withSuccessHandler(function (res) {
+            if (!res || !res.success || !res.data) {
+              if (window.showToast) window.showToast((res && res.error) || 'Export failed', 'error');
+              return;
+            }
+            S.lastExport = res.data;
+            if (cb) cb(res.data);
+          })
+          .withFailureHandler(function (err) {
+            if (window.showToast) window.showToast((err && err.message) || String(err), 'error');
+          })
+          .exportSabhaAttendanceReport(sid);
+      }
+
+      window.loadAttendancePage = function () {
+        $('att-access-denied').classList.add('att-hidden');
+        $('att-main').classList.add('att-hidden');
+        if (!window.__hppAttendanceUiBound) {
+          window.__hppAttendanceUiBound = true;
+          document.querySelectorAll('.att-tab').forEach(function (t) {
+            t.addEventListener('click', function () {
+              setTab(t.getAttribute('data-att-tab'));
+            });
+          });
+          $('att-search').addEventListener('input', function () {
+            S.search = $('att-search').value;
+            renderList();
+          });
+          $('att-search-clear').addEventListener('click', function () {
+            $('att-search').value = '';
+            S.search = '';
+            renderList();
+          });
+          $('att-search').addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            var first = filteredDevs()[0];
+            if (first && !S.present[first.id]) toggleMark(first.id);
+          });
+          document.querySelectorAll('.att-pill').forEach(function (p) {
+            p.addEventListener('click', function () {
+              document.querySelectorAll('.att-pill').forEach(function (x) {
+                x.classList.remove('active');
+              });
+              p.classList.add('active');
+              S.filter = p.getAttribute('data-filter') || 'all';
+              renderList();
+            });
+          });
+          $('att-sheet-backdrop').addEventListener('click', closeSheet);
+          $('att-sheet-close').addEventListener('click', closeSheet);
+          $('att-sheet-undo').addEventListener('click', doUndo);
+          $('att-session-select').addEventListener('change', function () {
+            loadReportForSabha($('att-session-select').value);
+          });
+          $('att-notes-save').addEventListener('click', function () {
+            var sid = $('att-session-select').value;
+            if (!sid) return;
+            google.script.run
+              .withSuccessHandler(function (res) {
+                if (!res || !res.success) {
+                  if (window.showToast) window.showToast((res && res.error) || 'Save failed', 'error');
+                  return;
+                }
+                if (window.showToast) window.showToast('Notes saved', 'success');
+              })
+              .withFailureHandler(function (err) {
+                if (window.showToast) window.showToast((err && err.message) || String(err), 'error');
+              })
+              .updateSabhaNotesAttendance(sid, $('att-notes').value);
+          });
+          $('att-copy-report').addEventListener('click', function () {
+            exportCurrentReport(function (data) {
+              var text = data.text || '';
+              if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(function () {
+                  if (window.showToast) window.showToast('Copied to clipboard', 'success');
+                });
+              } else {
+                if (window.showToast) window.showToast('Clipboard not available', 'error');
+              }
+            });
+          });
+          $('att-wa-report').addEventListener('click', function () {
+            exportCurrentReport(function (data) {
+              var text = encodeURIComponent(data.text || '');
+              window.open('https://wa.me/?text=' + text, '_blank');
+            });
+          });
+          $('att-wa-karya').addEventListener('click', function () {
+            var sid = $('att-session-select').value;
+            if (!sid || !S.karyaData || !S.karyaData.length) return;
+            var lines = S.karyaData.map(function (k) {
+              return k.name + ': ' + k.present.length + '/' + k.total + ' present';
+            });
+            var text = encodeURIComponent(['Karyakarta attendance summary', '', lines.join('\n')].join('\n'));
+            window.open('https://wa.me/?text=' + text, '_blank');
+          });
+        }
+        buildFridayRow();
+        setTab('mark');
+      };
+    })();
+  </script>
+</section>

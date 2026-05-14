@@ -1004,6 +1004,9 @@
       if (page === 'settings' && typeof window.loadDiagnostics === 'function') {
         window.loadDiagnostics();
       }
+      if (page === 'attendance' && typeof window.loadAttendancePage === 'function') {
+        window.loadAttendancePage();
+      }
     };
     window.handleGoogleSignIn = function () {
       showToast('Signing in…', 'info');
