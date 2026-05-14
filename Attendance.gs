@@ -81,17 +81,35 @@ function _attendanceRowIsPresentOrLate_(attRow) {
 
 /**
  * @param {Object} user
- * @return {Array<Object>}
+ * @param {string} genderFilter 'all' | 'male' | 'female' | ''
+ * @param {number|null} maxListSize cap list length; null = unlimited
+ * @return {{ devotees: Array<Object>, totalMatching: number }}
  */
-function _getAttendanceDevoteeSummaries_(user) {
+function _getAttendanceDevoteeSummaries_(user, genderFilter, maxListSize) {
+  var want = String(genderFilter || 'all').toLowerCase();
+  if (!want || want === 'all') want = '';
+  var cap =
+    maxListSize === null || maxListSize === undefined || maxListSize === ''
+      ? null
+      : parseInt(maxListSize, 10);
+  if (isNaN(cap) || cap < 0) cap = null;
+
   var values = _getDevoteesRowsCached_();
   var out = [];
+  var totalMatching = 0;
   var i;
   for (i = 0; i < values.length; i++) {
     var row = values[i];
     if (!_devoteeRowVisibleForRole(row, user)) continue;
     var st = String(row[DEVOTEES_COL.Status] || '').toLowerCase();
     if (st && st !== DEVOTEE_STATUS.ACTIVE) continue;
+    var g = String(row[DEVOTEES_COL.Gender] || '').toLowerCase();
+    var rowMale = g === 'male' || g === 'm';
+    var rowFemale = g === 'female' || g === 'f';
+    if (want === 'male' && !rowMale) continue;
+    if (want === 'female' && !rowFemale) continue;
+    totalMatching++;
+    if (cap !== null && out.length >= cap) continue;
     out.push({
       id: String(row[DEVOTEES_COL.DevoteeID] || '').trim(),
       firstName: String(row[DEVOTEES_COL.FirstName] || '').trim(),
@@ -105,15 +123,48 @@ function _getAttendanceDevoteeSummaries_(user) {
       karyakarta: String(row[DEVOTEES_COL.KaryakartaID] || '').trim(),
     });
   }
-  return out;
+  return { devotees: out, totalMatching: totalMatching };
+}
+
+/**
+ * Devotee rows for marking (optional cap for fast first paint).
+ * @param {string} genderFilter 'male' | 'female' | 'all'
+ * @param {number} listLimit max rows; -1 or omitted = all
+ * @return {{ success: boolean, data?: Object, error?: string }}
+ */
+function getAttendanceDevoteeList(genderFilter, listLimit) {
+  try {
+    var user = getCurrentUser();
+    if (!user) return errorResponse('Not signed in');
+    if (!_attendanceRoleCanMark_(user)) {
+      return errorResponse('Only admins, leaders, sub-leaders, and karyakartas can mark attendance.');
+    }
+    var g = String(genderFilter || 'male').toLowerCase();
+    if (g !== 'male' && g !== 'female' && g !== 'all') g = 'male';
+    var lim = listLimit;
+    var cap =
+      lim === null || lim === undefined || lim === '' ? null : parseInt(lim, 10);
+    if (cap !== null && cap < 0) cap = null;
+    var pack = _getAttendanceDevoteeSummaries_(user, g === 'all' ? '' : g, cap);
+    return successResponse({
+      devotees: pack.devotees,
+      totalMatching: pack.totalMatching,
+      genderFilter: g,
+    });
+  } catch (e) {
+    logError('getAttendanceDevoteeList', { genderFilter: genderFilter }, e);
+    return errorResponse(e.message || String(e));
+  }
 }
 
 /**
  * Initial payload for the attendance page (sabha for date + list + present ids).
  * @param {string} dateStr yyyy-MM-dd
+ * @param {string} genderFilter optional; default male for marking list
+ * @param {number} listLimit optional; positive = cap devotees for first load
  * @return {{ success: boolean, data?: Object, error?: string }}
  */
-function getAttendanceBootstrap(dateStr) {
+function getAttendanceBootstrap(dateStr, genderFilter, listLimit) {
   try {
     var user = getCurrentUser();
     if (!user) return errorResponse('Not signed in');
@@ -130,11 +181,20 @@ function getAttendanceBootstrap(dateStr) {
     var presentRes = getSabhaPresentDevoteeIds(sabha.id);
     if (!presentRes || !presentRes.success) return presentRes;
 
-    var devotees = _getAttendanceDevoteeSummaries_(user);
+    var g = String(genderFilter || 'male').toLowerCase();
+    if (g !== 'male' && g !== 'female' && g !== 'all') g = 'male';
+    var lim = listLimit;
+    var cap =
+      lim === null || lim === undefined || lim === '' ? null : parseInt(lim, 10);
+    if (cap !== null && cap < 0) cap = null;
+    var pack = _getAttendanceDevoteeSummaries_(user, g === 'all' ? '' : g, cap);
     return successResponse({
       sabha: sabha,
       presentIds: presentRes.data || [],
-      devotees: devotees,
+      devotees: pack.devotees,
+      devoteesTotal: pack.totalMatching,
+      partialDevotees: cap !== null && pack.devotees.length < pack.totalMatching,
+      genderFilter: g,
     });
   } catch (e) {
     logError('getAttendanceBootstrap', { dateStr: dateStr }, e);
@@ -493,7 +553,7 @@ function getSabhaAttendanceReport(sabhaId) {
     if (!user) return errorResponse('Not signed in');
     if (!_attendanceRoleCanMark_(user)) return errorResponse('Access denied');
 
-    var devotees = _getAttendanceDevoteeSummaries_(user);
+    var devotees = _getAttendanceDevoteeSummaries_(user, '', null).devotees;
     var sheet = getSheet(SHEET_SABHAS);
     var lastRow = sheet.getLastRow();
     var session = null;
@@ -624,7 +684,7 @@ function getAttendanceAnalytics() {
     if (!user) return errorResponse('Not signed in');
     if (!_attendanceRoleCanMark_(user)) return errorResponse('Access denied');
 
-    var devotees = _getAttendanceDevoteeSummaries_(user);
+    var devotees = _getAttendanceDevoteeSummaries_(user, '', null).devotees;
     var sessionsRes = getAllSabhasForAttendance();
     if (!sessionsRes || !sessionsRes.success) return sessionsRes;
     var sessions = sessionsRes.data || [];
@@ -832,7 +892,7 @@ function getKaryakartaAttendanceReport(sabhaId) {
     var presentSet = {};
     for (var i = 0; i < report.present.length; i++) presentSet[report.present[i].id] = true;
 
-    var devotees = _getAttendanceDevoteeSummaries_(user);
+    var devotees = _getAttendanceDevoteeSummaries_(user, '', null).devotees;
     function mobileForKaryakartaLabel(label) {
       var L = String(label || '').trim();
       if (!L || L === '(Unassigned)') return '';

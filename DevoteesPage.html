@@ -1326,7 +1326,7 @@
           <select id="dev-filter-type" class="dv-select" onchange="loadDevotees()"><option value="all">All Types</option></select>
           <select id="dev-filter-gender" class="dv-select" onchange="applyFilters()">
             <option value="all">All Gender</option>
-            <option value="male">Male</option>
+            <option value="male" selected>Male</option>
             <option value="female">Female</option>
           </select>
           <select id="dev-filter-blood" class="dv-select" onchange="applyFilters()">
@@ -1589,6 +1589,8 @@
     };
     var DEV_CACHE_TTL_MS = 30 * 60 * 1000;
     var DEV_CACHE_PREFIX = 'hpp_devotees_cache_v1|';
+    /** First server request page size for fast paint; then full page loads in background. */
+    var HPP_DEV_INITIAL_PAGE_SIZE = 10;
   
     function devToast(msg, type) {
       if (window.showToast) window.showToast(msg, type || '');
@@ -1632,12 +1634,16 @@
       animateNumber(document.getElementById('stat-female'), d.female || 0);
     }
   
-    function buildServerFilters() {
+    function buildServerFilters(phaseFull) {
       function gv(id, def) {
         var el = document.getElementById(id);
         return el && 'value' in el ? el.value : def;
       }
       var st = gv('dev-filter-status', 'active');
+      var fullSize = parseInt(S.pageSize || 50, 10);
+      if (!isFinite(fullSize) || fullSize < 1) fullSize = 50;
+      if (fullSize > 500) fullSize = 500;
+      var pageSizeReq = phaseFull ? fullSize : Math.min(HPP_DEV_INITIAL_PAGE_SIZE, fullSize);
       return {
         mandalID: (gv('dev-filter-mandal', '') || '').trim(),
         subLeaderID: '',
@@ -1645,11 +1651,11 @@
         status: st === 'all' ? 'all' : st,
         devoteeType: (gv('dev-filter-type', 'all') || 'all').trim(),
         searchQuery: String(gv('dev-search', '') || '').trim(),
-        gender: gv('dev-filter-gender', 'all') || 'all',
+        gender: gv('dev-filter-gender', 'male') || 'male',
         bloodGroup: gv('dev-filter-blood', 'all') || 'all',
         ageBand: gv('dev-filter-age', 'all') || 'all',
         page: S.serverPage || 0,
-        pageSize: S.pageSize || 50
+        pageSize: pageSizeReq
       };
     }
 
@@ -1789,12 +1795,23 @@
       var forceRefresh = !!opts.forceRefresh;
       var backgroundSync = !!opts.backgroundSync;
       var silent = !!opts.silent || backgroundSync;
+      var phaseFull = !!opts.phaseFull;
       try {
-        var filters = buildServerFilters();
+        var filters = buildServerFilters(phaseFull);
         var key = devCacheKey(filters);
-        if (!forceRefresh) {
+        if (!forceRefresh && !phaseFull) {
           var cached = readDevCache(key);
           if (cached && applyDevBundlePayload(cached)) {
+            var tot0 = parseInt((cached.paging && cached.paging.total) || 0, 10);
+            var n0 = (cached.devotees && cached.devotees.length) || 0;
+            if (tot0 > n0 || (cached.paging && cached.paging.hasNext)) {
+              loadDevotees({
+                forceRefresh: true,
+                silent: true,
+                backgroundSync: true,
+                phaseFull: true,
+              });
+            }
             if (!backgroundSync) return;
             silent = true;
           }
@@ -1820,9 +1837,21 @@
               }
               writeDevCache(key, payload);
               applyDevBundlePayload(payload);
+              if (!phaseFull) {
+                var tot = parseInt((payload.paging && payload.paging.total) || 0, 10);
+                var got = payload.devotees.length;
+                if (tot > got || (payload.paging && payload.paging.hasNext)) {
+                  loadDevotees({
+                    forceRefresh: true,
+                    silent: true,
+                    backgroundSync: true,
+                    phaseFull: true,
+                  });
+                }
+              }
               if (S.devotees.length === 0 && parseInt(S.paging.total || 0, 10) > 0 && S.serverPage > 0) {
                 S.serverPage = 0;
-                loadDevotees({ forceRefresh: true, silent: silent });
+                loadDevotees({ forceRefresh: true, silent: silent, phaseFull: true });
                 return;
               }
               // If "Active only" returns empty but overall data exists, auto-relax once to avoid blank screen.
@@ -1835,7 +1864,7 @@
                 S.autoRelaxedStatusOnce = true;
                 if (stEl) stEl.value = 'all';
                 devToast('No active devotees found for current filters. Showing all statuses.', 'info');
-                loadDevotees({ forceRefresh: true, silent: silent });
+                loadDevotees({ forceRefresh: true, silent: silent, phaseFull: true });
                 return;
               }
               if (S.devotees.length > 0) S.autoRelaxedStatusOnce = false;
@@ -2061,7 +2090,7 @@
       if (p < 0) return;
       if (S.paging && p >= parseInt(S.paging.totalPages || 1, 10)) return;
       S.serverPage = p;
-      loadDevotees({ forceRefresh: true });
+      loadDevotees({ forceRefresh: true, phaseFull: true });
     };
 
     window.changeDevPageSize = function (sz) {
@@ -2069,7 +2098,7 @@
       if (!n || n < 1) return;
       S.pageSize = n;
       S.serverPage = 0;
-      loadDevotees({ forceRefresh: true });
+      loadDevotees({ forceRefresh: true, phaseFull: true });
     };
 
     window.jumpDevPage = function (v) {

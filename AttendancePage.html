@@ -41,10 +41,10 @@
         <input type="search" id="att-search" class="att-input" placeholder="Name, mobile, or yyyy-MM-dd…" autocomplete="off" />
         <button type="button" class="att-btn-clear" id="att-search-clear" aria-label="Clear search">✕</button>
       </div>
-      <div class="att-pills">
-        <button type="button" class="att-pill active" data-filter="all">All</button>
-        <button type="button" class="att-pill" data-filter="male">Male</button>
-        <button type="button" class="att-pill" data-filter="female">Female</button>
+      <div class="att-pills" id="att-gender-pills" title="List is loaded by gender for speed">
+        <button type="button" class="att-pill" data-gender="all">All</button>
+        <button type="button" class="att-pill active" data-gender="male">Male</button>
+        <button type="button" class="att-pill" data-gender="female">Female</button>
       </div>
       <div class="att-list-head">
         <span id="att-list-title">Devotees</span>
@@ -357,10 +357,11 @@
     (function () {
       var S = {
         devotees: [],
+        devoteesTotal: 0,
         present: {},
         sabha: null,
         activeDate: null,
-        filter: 'all',
+        genderServer: 'male',
         search: '',
         tab: 'mark',
         pollTimer: null,
@@ -429,13 +430,6 @@
         return (a + b).toUpperCase();
       }
 
-      function genderKey(g) {
-        var x = String(g || '').toLowerCase();
-        if (x === 'm' || x === 'male') return 'male';
-        if (x === 'f' || x === 'female') return 'female';
-        return 'other';
-      }
-
       function stopPoll() {
         if (S.pollTimer) {
           clearInterval(S.pollTimer);
@@ -464,9 +458,13 @@
       }
 
       function updateStats() {
-        var total = S.devotees.length;
+        var total =
+          S.devoteesTotal != null && S.devoteesTotal > 0
+            ? S.devoteesTotal
+            : S.devotees.length;
         var p = 0;
-        for (var i = 0; i < total; i++) {
+        var i;
+        for (i = 0; i < S.devotees.length; i++) {
           if (S.present[S.devotees[i].id]) p++;
         }
         $('att-stat-total').textContent = String(total);
@@ -479,7 +477,6 @@
       function filteredDevs() {
         var q = S.search.trim().toLowerCase();
         return S.devotees.filter(function (d) {
-          if (S.filter !== 'all' && genderKey(d.gender) !== S.filter) return false;
           if (!q) return true;
           var name = fullName(d).toLowerCase();
           var mob = String(d.mobile || '').toLowerCase();
@@ -603,6 +600,7 @@
           el.classList.toggle('active', el.getAttribute('data-date') === dateStr);
         });
         $('att-list').innerHTML = '<p class="muted">Loading…</p>';
+        var gSrv = S.genderServer || 'male';
         google.script.run
           .withSuccessHandler(function (res) {
             if (!res || !res.success) {
@@ -616,6 +614,8 @@
             var data = res.data || {};
             S.sabha = data.sabha;
             S.devotees = data.devotees || [];
+            S.devoteesTotal =
+              typeof data.devoteesTotal === 'number' ? data.devoteesTotal : S.devotees.length;
             S.present = {};
             (data.presentIds || []).forEach(function (id) {
               S.present[id] = true;
@@ -629,11 +629,25 @@
             updateStats();
             renderList();
             startPollIfToday();
+            if (data.partialDevotees) {
+              google.script.run
+                .withSuccessHandler(function (res2) {
+                  if (!res2 || !res2.success || !res2.data) return;
+                  var d2 = res2.data;
+                  S.devotees = d2.devotees || [];
+                  S.devoteesTotal =
+                    typeof d2.totalMatching === 'number' ? d2.totalMatching : S.devotees.length;
+                  updateStats();
+                  renderList();
+                })
+                .withFailureHandler(function () {})
+                .getAttendanceDevoteeList(gSrv, -1);
+            }
           })
           .withFailureHandler(function (err) {
             if (window.showToast) window.showToast((err && err.message) || String(err), 'error');
           })
-          .getAttendanceBootstrap(dateStr);
+          .getAttendanceBootstrap(dateStr, gSrv, 10);
       }
 
       function buildFridayRow() {
@@ -857,16 +871,16 @@
             var first = filteredDevs()[0];
             if (first && !S.present[first.id]) toggleMark(first.id);
           });
-          document.querySelectorAll('.att-pill').forEach(function (p) {
-            p.addEventListener('click', function () {
-              document.querySelectorAll('.att-pill').forEach(function (x) {
-                x.classList.remove('active');
-              });
-              p.classList.add('active');
-              S.filter = p.getAttribute('data-filter') || 'all';
-              renderList();
+        document.querySelectorAll('#att-gender-pills .att-pill').forEach(function (p) {
+          p.addEventListener('click', function () {
+            document.querySelectorAll('#att-gender-pills .att-pill').forEach(function (x) {
+              x.classList.remove('active');
             });
+            p.classList.add('active');
+            S.genderServer = p.getAttribute('data-gender') || 'male';
+            if (S.activeDate) selectDate(S.activeDate);
           });
+        });
           $('att-sheet-backdrop').addEventListener('click', closeSheet);
           $('att-sheet-close').addEventListener('click', closeSheet);
           $('att-sheet-undo').addEventListener('click', doUndo);

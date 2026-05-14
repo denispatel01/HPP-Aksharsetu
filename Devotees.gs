@@ -972,8 +972,15 @@ function _devoteeRowMatchesFilters(row, f) {
     }
   }
   if (f.gender && String(f.gender).toLowerCase() !== 'all') {
+    var want = String(f.gender).toLowerCase();
     var g = String(row[DEVOTEES_COL.Gender] || '').toLowerCase();
-    if (g !== String(f.gender).toLowerCase()) return false;
+    var rowMale = g === 'male' || g === 'm';
+    var rowFemale = g === 'female' || g === 'f';
+    var ok = false;
+    if (want === 'male') ok = rowMale;
+    else if (want === 'female') ok = rowFemale;
+    else ok = g === want;
+    if (!ok) return false;
   }
   if (f.bloodGroup && String(f.bloodGroup).toLowerCase() !== 'all') {
     var bg = String(row[DEVOTEES_COL.BloodGroup] || '').toUpperCase().trim();

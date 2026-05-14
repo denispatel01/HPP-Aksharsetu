@@ -1,0 +1,1 @@
+Default male filter; fast initial load (10 rows) then background fill; attendance gender pills and capped bootstrap
